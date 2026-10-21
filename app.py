@@ -8,10 +8,18 @@ from supabase import create_client
 # 1. PAGE CONFIGURATION
 # ==================================================
 st.set_page_config(
-    page_title="Building Energy Predictor",
+    page_title="ArchiLoad AI",
     page_icon="🏢",
     layout="wide"
 )
+
+st.title("🏢 ArchiLoad AI")
+st.subheader("AI-Based Heating and Cooling Load Predictor")
+st.write(
+    "Explore how early-stage building design parameters "
+    "influence predicted heating and cooling loads."
+)
+
 
 # ==================================================
 # 2. LOAD TRAINED MODELS
