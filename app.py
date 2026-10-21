@@ -78,14 +78,14 @@ except Exception:
 # ==================================================
 METRICS = {
     "Heating Load": {
-        "MAE": None,
-        "RMSE": None,
-        "R2": None
+        "MAE": 0.35235,   # Replace with your actual result
+        "RMSE": 0.489673218,  # Replace with your actual result
+        "R2": 0.997699565     # Replace with your actual result
     },
     "Cooling Load": {
-        "MAE": None,
-        "RMSE": None,
-        "R2": None
+        "MAE": 1.079106926,   # Replace with your actual result
+        "RMSE": 1.750736111,  # Replace with your actual result
+        "R2": 0.966920264     # Replace with your actual result
     }
 }
 
