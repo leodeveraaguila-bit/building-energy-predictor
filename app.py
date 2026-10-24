@@ -9,7 +9,7 @@ from supabase import create_client
 # ==================================================
 st.set_page_config(
     page_title="ArchiLoad AI",
-    page_icon="🏢",
+    page_icon="ArchiLoad AI Logo.png",
     layout="wide"
 )
 
