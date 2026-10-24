@@ -349,7 +349,7 @@ def logo_html(height=38):
 def sidebar(client):
     with st.sidebar:
         st.markdown(
-    f'<div class="brand">{logo_html(25)}</div>'
+    f'<div class="brand">{logo_html(30)}</div>'
     f'<div class="sidebar-kicker">PERSONAL WORKSPACE</div>',
     unsafe_allow_html=True
 )
