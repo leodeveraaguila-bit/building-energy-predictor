@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🏢 ArchiLoad AI")
+st.title("ArchiLoad AI")
 st.subheader("AI-Based Heating and Cooling Load Predictor")
 st.write(
     "Explore how early-stage building design parameters "
@@ -101,7 +101,7 @@ METRICS = {
 # ==================================================
 # 5. HOMEPAGE / PROJECT OVERVIEW
 # ==================================================
-st.title("🏢 AI-Based Heating and Cooling Load Predictor")
+st.title("AI-Based Heating and Cooling Load Predictor")
 
 st.write(
     """
