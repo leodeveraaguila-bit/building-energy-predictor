@@ -327,7 +327,7 @@ def asset_data_uri(filename):
 
 
 def logo_html(height=38):
-    logo_uri = asset_data_uri("supplied-archiload-logo.png")
+    logo_uri = asset_data_uri("archiloadai.png")
     if logo_uri:
         return f'<img src="{logo_uri}" alt="ArchiLoad AI logo" style="height:{height}px;max-width:100%;object-fit:contain;object-position:left center;" />'
     return '<span style="font-size:1.3rem;margin-right:.45rem;">▥</span><span>ArchiLoad AI</span>'
