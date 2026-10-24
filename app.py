@@ -505,19 +505,43 @@ def prediction_page(client):
                 distribution = st.selectbox("Glazing distribution", [0, 1, 2, 3, 4, 5], index=0)
             submitted = st.form_submit_button("Calculate load estimates", type="primary", use_container_width=True)
         if submitted:
-            values = {"relative_compactness": compact, "surface_area": surface, "wall_area": wall, "roof_area": roof, "overall_height": height, "orientation": orientation, "glazing_area": glazing, "glazing_distribution": distribution}
+            values = {
+                "relative_compactness": relative_compactness,
+                "surface_area": surface_area,
+                "wall_area": wall_area,
+                "roof_area": roof_area,
+                "overall_height": overall_height,
+                "orientation": orientation,
+                "glazing_area": glazing_area,
+                "glazing_distribution": glazing_distribution,
+            }
+
             try:
-                 with st.spinner("Calculating and saving estimates..."):
-                    heating, cooling = predict(values)
+                with st.spinner("Calculating estimates..."):
+                    heating, cooling = run_prediction(values)
                     save_prediction(client, values, heating, cooling)
-                st.session_state.last_prediction = {"heating_load": heating, "cooling_load": cooling, "created_at": datetime.now().isoformat(timespec="seconds")}
+
+                st.session_state.last_prediction = {
+                    "heating_load": heating,
+                    "cooling_load": cooling,
+                    "created_at": datetime.now().isoformat(timespec="seconds"),
+                }
                 st.session_state.prediction_inputs = values
+
                 st.success("Prediction calculated and saved to your account.")
                 st.rerun()
+
             except FileNotFoundError as exc:
-                st.error(f"A required model file is missing. Put heating_model.pkl, cooling_model.pkl, and feature_columns.pkl beside app.py in GitHub. Details: {exc}")
+                st.error(
+                    "A required model file is missing. Ensure heating_model.pkl, "
+                    "cooling_model.pkl, and feature_columns.pkl are in the GitHub "
+                    f"repository beside app.py. Details: {exc}"
+                )
+
             except Exception as exc:
-                st.error(f"Could not calculate or save the prediction. Check your model files and Supabase connection. Details: {exc}")
+                st.error(
+                    f"Could not calculate or save the prediction. Details: {exc}"
+                )
     with result_col:
         st.markdown('<div class="card"><div class="card-title">Load estimates</div><div class="muted">Predicted values from the trained regression models.</div>', unsafe_allow_html=True)
         result = st.session_state.last_prediction
