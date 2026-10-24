@@ -335,7 +335,7 @@ def logo_html(height=38):
 
 def sidebar(client):
     with st.sidebar:
-        st.markdown(f'<div class="brand">{logo_html(38)}</div><div class="sidebar-kicker">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="brand">{logo_html(20)}</div><div class="sidebar-kicker">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
         page = st.radio("Navigation", VALID_PAGES, index=VALID_PAGES.index(st.session_state.page) if st.session_state.page in VALID_PAGES else 0, label_visibility="collapsed", key="nav_radio")
         if page != st.session_state.page:
             st.session_state.page = page
