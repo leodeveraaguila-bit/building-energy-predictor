@@ -328,14 +328,31 @@ def asset_data_uri(filename):
 
 def logo_html(height=38):
     logo_uri = asset_data_uri("archiloadai.png")
+
     if logo_uri:
-        return f'<img src="{logo_uri}" alt="ArchiLoad AI logo" style="height:{height}px;max-width:100%;object-fit:contain;object-position:left center;" />'
-    return '<span style="font-size:1.3rem;margin-right:.45rem;">▥</span><span>ArchiLoad AI</span>'
+        return (
+            f'<div style="display:flex;align-items:center;gap:10px;">'
+            f'<img src="{logo_uri}" alt="ArchiLoad AI logo" '
+            f'style="height:{height}px;width:{height}px;'
+            f'object-fit:contain;flex-shrink:0;" />'
+            f'<span style="font-size:1.28rem;font-weight:700;'
+            f'color:white;white-space:nowrap;">ArchiLoad AI</span>'
+            f'</div>'
+        )
+
+    return (
+        '<span style="font-size:1.28rem;font-weight:700;color:white;">'
+        'ArchiLoad AI</span>'
+    )
 
 
 def sidebar(client):
     with st.sidebar:
-        st.markdown(f'<div class="brand">{logo_html(20)}</div><div class="sidebar-kicker">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
+        st.markdown(
+    f'<div class="brand">{logo_html(36)}</div>'
+    f'<div class="sidebar-kicker">PERSONAL WORKSPACE</div>',
+    unsafe_allow_html=True
+)
         page = st.radio("Navigation", VALID_PAGES, index=VALID_PAGES.index(st.session_state.page) if st.session_state.page in VALID_PAGES else 0, label_visibility="collapsed", key="nav_radio")
         if page != st.session_state.page:
             st.session_state.page = page
