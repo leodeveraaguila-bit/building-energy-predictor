@@ -13,7 +13,7 @@ from supabase import create_client
 # Keep these three model files beside app.py in your GitHub repository:
 # heating_model.pkl, cooling_model.pkl, feature_columns.pkl
 
-st.set_page_config(page_title="ArchiLoad AI", page_icon="🏢", layout="wide")
+st.set_page_config(page_title="ArchiLoad AI", page_icon="archiloadai.png", layout="wide")
 
 NAVY = "#142B3D"
 NAVY_LIGHT = "#213E51"
