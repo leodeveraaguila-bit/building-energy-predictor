@@ -51,6 +51,10 @@ h1 {{ font-weight:800; }}
 .warning {{ border-left:4px solid #D59B35; background:#FFF7E7; border-radius:9px; padding:.85rem 1rem; color:#6B5123; }}
 .small-muted {{ color:{MUTED}; font-size:.8rem; }}
 .section-label {{ font-size:.78rem; color:{MUTED}; text-transform:uppercase; letter-spacing:.09em; font-weight:750; }}
+.topbar {{ display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.15rem 0 .9rem; margin-bottom:1rem; border-bottom:1px solid {BORDER}; }}
+.topbar-label {{ color:{MUTED}; font-size:.83rem; font-weight:600; }}
+.profile-chip {{ display:flex; align-items:center; gap:.55rem; color:{INK}; font-size:.84rem; font-weight:700; }}
+.profile-initials {{ width:2rem; height:2rem; border-radius:50%; background:#E3F4F3; color:{TEAL_DARK}; display:inline-flex; align-items:center; justify-content:center; font-weight:800; }}
 .stButton > button, .stDownloadButton > button {{ border-radius:10px; font-weight:650; min-height:2.65rem; border:1px solid {BORDER}; }}
 .stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"] {{ background:{TEAL}; border-color:{TEAL}; color:white; }}
 .stButton > button[kind="primary"]:hover {{ background:{TEAL_DARK}; border-color:{TEAL_DARK}; }}
@@ -244,7 +248,20 @@ def update_user_metadata(updates):
 
 
 def page_header(kicker, title, subtitle):
-    st.markdown(f'<div class="eyebrow">{kicker}</div><div class="hero-title">{title}</div><p class="subtle">{subtitle}</p>', unsafe_allow_html=True)
+    """Render the workspace breadcrumb/profile row and the page heading."""
+    meta = user_metadata()
+    first = str(meta.get("first_name", "")).strip()
+    last = str(meta.get("last_name", "")).strip()
+    initials = ((first[:1] + last[:1]) or current_email()[:1] or "A").upper()
+    name = display_name()
+    page_name = kicker.split("/")[-1].strip().title() if "/" in kicker else kicker
+    st.markdown(
+        f'<div class="topbar"><div class="topbar-label">Workspace&nbsp;&nbsp; / &nbsp;&nbsp;{page_name}</div>'
+        f'<div class="profile-chip"><span class="profile-initials">{initials}</span><span>{name}</span></div></div>'
+        f'<div class="eyebrow">{kicker}</div><div class="hero-title">{title}</div>'
+        f'<p class="subtle">{subtitle}</p>',
+        unsafe_allow_html=True,
+    )
 
 
 def card_title(title, subtitle=None):
@@ -369,7 +386,7 @@ def render_sidebar():
 
 
 def render_overview():
-    page_header("WORKSPACE / OVERVIEW", "Design with better insight.", "Explore early-stage building parameters and review your saved heating and cooling load estimates.")
+    page_header("WORKSPACE / OVERVIEW", "Overview", "Welcome to ArchiLoad AI. Start exploring the energy implications of your design.")
     a, b, c = st.columns(3, gap="medium")
     cards = [("DATASET RECORDS", "768", "Simulated building configurations"), ("PREDICTION OUTPUTS", "02", "Heating load and cooling load"), ("BUILDING INPUTS", "08", "Form, orientation, and glazing")]
     for col, (label, number, caption) in zip([a, b, c], cards):
@@ -379,7 +396,7 @@ def render_overview():
     left, right = st.columns([1.22, .78], gap="large")
     with left:
         with st.container(border=True):
-            card_title("From design inputs to load estimates", "A simple workflow for preliminary design exploration.")
+            card_title("From building parameters to early insight", "Explore alternatives before detailed energy analysis.")
             cols = st.columns(3)
             steps = [("01", "Set inputs", "Define building form, orientation, and glazing."), ("02", "Run the model", "The trained regressors evaluate your parameters."), ("03", "Review results", "Compare heating and cooling load estimates.")]
             for col, (num, title, desc) in zip(cols, steps):
@@ -403,7 +420,7 @@ def render_overview():
             st.markdown("**Model outputs**")
             st.caption("Heating load · Cooling load")
         with st.container(border=True):
-            card_title("Your recent predictions")
+            card_title("Your prediction history")
             try:
                 rows = fetch_predictions(5)
                 if rows:
@@ -422,29 +439,53 @@ def render_overview():
     footer()
 
 
+def reset_prediction_inputs():
+    """Reset prediction widgets to the example values shown in the design."""
+    for key, value in DEFAULT_INPUTS.items():
+        st.session_state[f"prediction_{key}"] = value
+
+
 def render_prediction():
-    page_header("WORKSPACE / PREDICTION", "Prediction workspace", "Adjust the building parameters to estimate heating and cooling loads.")
+    # Initialize keyed widget state so the Reset inputs button can reliably restore defaults.
+    for key, value in DEFAULT_INPUTS.items():
+        st.session_state.setdefault(f"prediction_{key}", value)
+    page_header("WORKSPACE / PREDICTION", "Prediction", "Adjust the eight building parameters to explore a configuration.")
     st.markdown('<div class="note">Use categories represented in the UCI Energy Efficiency dataset. Results are estimates for comparison, not final engineering calculations.</div>', unsafe_allow_html=True)
     st.write("")
     left, right = st.columns([1.08, .92], gap="large")
     with left:
         with st.container(border=True):
-            card_title("Building parameters", "Enter the values for your building configuration.")
+            card_title("Building Design Parameters", "Example values are ready to edit. All eight inputs are required.")
             with st.form("prediction_form"):
                 x, y = st.columns(2, gap="medium")
                 with x:
-                    relative_compactness = st.number_input("Relative compactness", .60, 1.00, float(DEFAULT_INPUTS["relative_compactness"]), .01, format="%.2f", help="Dimensionless measure of building compactness.")
-                    surface_area = st.number_input("Surface area (m²)", 500.0, 820.0, float(DEFAULT_INPUTS["surface_area"]), 1.5, format="%.2f")
-                    wall_area = st.number_input("Wall area (m²)", 240.0, 420.0, float(DEFAULT_INPUTS["wall_area"]), 1.0, format="%.2f")
-                    roof_area = st.number_input("Roof area (m²)", 100.0, 225.0, float(DEFAULT_INPUTS["roof_area"]), 1.0, format="%.2f")
+                    st.markdown(f'<div class="section-label">Form &amp; dimensions</div>', unsafe_allow_html=True)
+                    relative_compactness = st.number_input("Relative Compactness", .60, 1.00, step=.01, format="%.2f", help="Building form compactness", key="prediction_relative_compactness")
+                    st.caption("Building form compactness")
+                    surface_area = st.number_input("Surface Area (m²)", 500.0, 820.0, step=1.5, format="%.2f", key="prediction_surface_area")
+                    st.caption("Total building surface area")
+                    wall_area = st.number_input("Wall Area (m²)", 240.0, 420.0, step=1.0, format="%.2f", key="prediction_wall_area")
+                    st.caption("Exterior wall area")
+                    roof_area = st.number_input("Roof Area (m²)", 100.0, 225.0, step=1.0, format="%.2f", key="prediction_roof_area")
+                    st.caption("Total roof area")
                 with y:
-                    overall_height = st.selectbox("Overall height (m)", [3.5, 7.0], index=1, help="The dataset contains two height categories.")
-                    orientation = st.selectbox("Orientation code", [2, 3, 4, 5], index=0, help="Use the dataset's orientation codes.")
-                    glazing_area = st.selectbox("Glazing area (fraction)", [0.00, 0.10, 0.25, 0.40], index=2, format_func=lambda v: f"{v:.2f}", help="Glazing-area category used in the dataset.")
-                    glazing_distribution = st.selectbox("Glazing distribution code", [0, 1, 2, 3, 4, 5], index=0, help="Use the dataset's glazing-distribution codes.")
+                    st.markdown(f'<div class="section-label">Height, orientation &amp; glazing</div>', unsafe_allow_html=True)
+                    overall_height = st.selectbox("Overall Height (m)", [3.5, 7.0], help="Building height", key="prediction_overall_height")
+                    st.caption("Building height")
+                    orientation = st.selectbox("Orientation", [2, 3, 4, 5], help="Dataset orientation code", key="prediction_orientation")
+                    st.caption("Dataset orientation code")
+                    glazing_area = st.selectbox("Glazing Area", [0.00, 0.10, 0.25, 0.40], format_func=lambda v: f"{v:.2f}", help="Glazing area proportion", key="prediction_glazing_area")
+                    st.caption("Glazing area proportion")
+                    glazing_distribution = st.selectbox("Glazing Area Distribution", [0, 1, 2, 3, 4, 5], help="Dataset distribution code", key="prediction_glazing_distribution")
+                    st.caption("Dataset distribution code")
                 if preferences().get("parameter_guidance", True):
                     st.caption("Design tip: compare alternatives by changing one input at a time.")
-                submitted = st.form_submit_button("Generate load estimates  →", type="primary", use_container_width=True)
+                submitted = st.form_submit_button("Predict Heating and Cooling Loads", type="primary", use_container_width=True)
+            reset_col, hint_col = st.columns([.7, 1.3])
+            with reset_col:
+                st.button("Reset inputs", on_click=reset_prediction_inputs, use_container_width=True)
+            with hint_col:
+                st.caption("Use one change at a time to compare configurations.")
             if submitted:
                 values = {"relative_compactness": relative_compactness, "surface_area": surface_area, "wall_area": wall_area,
                           "roof_area": roof_area, "overall_height": overall_height, "orientation": orientation,
@@ -470,7 +511,7 @@ def render_prediction():
                 st.caption(f"Generated: {result.get('created_at', 'recently')}")
                 st.markdown('<div class="warning">Model estimates are for relative comparison. They do not represent every site, weather, occupancy, construction, or HVAC condition.</div>', unsafe_allow_html=True)
             else:
-                st.info("Enter the building parameters and select Generate load estimates to see the results here.")
+                st.markdown(f'<div style="text-align:center;padding:1.5rem .5rem"><div class="section-label">Awaiting prediction</div><h3 style="margin-top:1rem">Your estimates will appear here</h3><p class="subtle">Review the building parameters, then run a prediction to estimate heating and cooling loads for this configuration.</p></div>', unsafe_allow_html=True)
             st.markdown("---")
             st.markdown("**Explore one change at a time**")
             st.caption("Compare forms, orientations, or glazing settings while holding other inputs constant.")
