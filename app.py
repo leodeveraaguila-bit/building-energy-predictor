@@ -349,7 +349,7 @@ def render_auth(client):
         <div class="auth-art">
             <div>
                 <div style="display:flex; align-items:center; gap:.5rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em;">
-                    <span style="background:{TEAL}; width:24px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">{logo_html}</span> ArchiLoad AI
+                    <span style="background:{TEAL}; width:32px; height:32px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">{logo_html}</span> ArchiLoad AI
                 </div>
                 <div style="margin-top:4rem;">
                     <div class="auth-kicker" style="color:#67D0D0;">EARLY-STAGE DESIGN EXPLORATION</div>
