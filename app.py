@@ -29,18 +29,24 @@ st.markdown(f"""
 html, body, [class*="css"] {{ font-family: Inter, sans-serif; }}
 .stApp {{ background:{BG}; color:{INK}; }}
 [data-testid="stHeader"] {{ background:rgba(244,247,249,.96); }}
+
+/* Sidebar styling matching modern reference */
 [data-testid="stSidebar"] {{ background:{NAVY}; border-right:1px solid #25465B; padding-top:1rem; }}
 [data-testid="stSidebar"] * {{ color:#F7FAFC; }}
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{ color:#C9D8E1; }}
 [data-testid="stSidebar"] hr {{ border-color:#365367; }}
-[data-testid="stSidebar"] [data-testid="stRadio"] label {{ padding:.5rem .75rem; border-radius:8px; font-weight:600; font-size:.9rem; }}
+[data-testid="stSidebar"] [data-testid="stRadio"] label {{ padding:.5rem .75rem; border-radius:8px; font-weight:600; font-size:.9rem; margin-bottom:.2rem; }}
 [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {{ background:#234357; }}
+
+/* Sidebar footer buttons */
+[data-testid="stSidebar"] .stButton > button {{ background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #C9D8E1; font-size: 0.78rem; border-radius: 8px; min-height: 2.2rem; }}
+[data-testid="stSidebar"] .stButton > button:hover {{ background: rgba(255,255,255,0.08); color: white; border-color: rgba(255,255,255,0.3); }}
+
 h1,h2,h3 {{ color:{NAVY}; letter-spacing:-.025em; }}
 h1 {{ font-weight:800; }}
 .eyebrow {{ color:{TEAL}; font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.13em; margin-bottom:.25rem; }}
 .hero-title {{ color:{NAVY}; font-size:clamp(2rem,3vw,2.75rem); line-height:1.12; font-weight:800; letter-spacing:-.045em; margin:.15rem 0 .55rem; }}
 .subtle {{ color:{MUTED}; line-height:1.65; margin-top:0; }}
-.sidebar-brand {{ font-size:1.25rem; font-weight:800; color:white; margin:.35rem 0 .15rem; letter-spacing:-.03em; }}
 .sidebar-caption {{ font-size:.78rem; color:#C9D8E1; line-height:1.5; }}
 .metric-card {{ background:{WHITE}; border:1px solid {BORDER}; border-radius:16px; padding:1.25rem 1.4rem; box-shadow:0 4px 18px rgba(20,43,61,.025); }}
 .metric-label {{ color:{MUTED}; font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }}
@@ -188,7 +194,7 @@ def make_model_frame(values, columns):
     for column in columns:
         key = lookup.get(normalize_name(column))
         if key is None:
-            raise ValueError(f"Unrecognized feature column '{column}' in feature_columns.pkl. Check the training feature names.")
+            raise ValueError(f"Unrecognized feature column '{column}' in feature_columns.pkl. Check training feature names.")
         row[column] = values[key]
     return pd.DataFrame([row], columns=columns)
 
@@ -415,7 +421,6 @@ def render_sidebar():
         st.write("")
         st.markdown('<div class="sidebar-caption" style="letter-spacing:.12em;font-weight:800;margin-top:.5rem">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
         
-        # Main radio navigation matching image_3
         selected = st.radio("Workspace navigation", pages, index=pages.index(current) if current in pages else 0, label_visibility="collapsed", key="sidebar_page")
         if selected != current and selected in pages:
             st.session_state.page = selected
@@ -423,7 +428,6 @@ def render_sidebar():
 
         st.markdown("<br><br><br>", unsafe_allow_html=True)
         
-        # Bottom sidebar card matching image_3 ("Better early-stage decisions")
         st.markdown(f"""
         <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.1rem; margin-bottom:1rem;">
             <div style="font-size:1.1rem; margin-bottom:.3rem;">🌱</div>
@@ -434,7 +438,6 @@ def render_sidebar():
         
         st.markdown("---")
         
-        # Footer nav items in sidebar (Settings, Account, Sign out)
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
             if st.button("⚙️ Settings", use_container_width=True):
@@ -450,30 +453,35 @@ def render_sidebar():
 
 
 def render_overview():
-    # Top bar matching image_3
+    # Top bar matching reference screenshot
+    meta = user_metadata()
+    first = str(meta.get("first_name", "")).strip()
+    last = str(meta.get("last_name", "")).strip()
+    initials = ((first[:1] + last[:1]) or current_email()[:1] or "AL").upper()
+    name = display_name()
+
     st.markdown(f"""
     <div class="topbar">
         <div class="topbar-label">Workspace &nbsp;&nbsp;›&nbsp;&nbsp; <b>Overview</b></div>
         <div style="display:flex; align-items:center; gap:1rem;">
             <div class="profile-chip">
-                <span class="profile-initials">AL</span>
-                <span>Alex Lee</span>
+                <span class="profile-initials">{initials}</span>
+                <span>{name}</span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Action button row using columns for "+ New prediction" button aligned right
     col_title, col_action = st.columns([3, 1])
     with col_title:
         st.markdown(f'<div class="hero-title" style="margin-top:0;">Overview</div>', unsafe_allow_html=True)
-        st.markdown(f'<p class="subtle" style="margin-bottom:1.5rem;">Welcome, Alex. Start exploring the energy implications of your design.</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="subtle" style="margin-bottom:1.5rem;">Welcome, {name}. Start exploring the energy implications of your design.</p>', unsafe_allow_html=True)
     with col_action:
         st.write("")
         if st.button("+ New prediction", type="primary", use_container_width=True):
-            go_to("Prediction")
+            st.session_state.page = "Prediction"
+            st.rerun()
 
-    # Top row: 3 Metric Cards matching image_3
     m1, m2, m3 = st.columns(3, gap="medium")
     with m1:
         st.markdown(f"""
@@ -511,7 +519,6 @@ def render_overview():
 
     st.write("")
 
-    # Middle row: Explore alternatives & Getting started
     left, right = st.columns([1.22, .78], gap="large")
     with left:
         with st.container(border=True):
@@ -519,7 +526,6 @@ def render_overview():
             st.markdown('<h3 style="margin-top:0; font-size:1.45rem;">Explore alternatives before detailed energy analysis.</h3>', unsafe_allow_html=True)
             st.markdown('<p class="subtle" style="font-size:.9rem;">ArchiLoad AI uses machine learning to estimate heating and cooling loads from selected building design parameters. Compare configurations to support informed early-stage architectural decisions.</p>', unsafe_allow_html=True)
             
-            # Flow diagram steps
             st.markdown(f"""
             <div style="display:flex; align-items:center; justify-content:space-between; background:#F8FAFB; border:1px solid {BORDER}; border-radius:12px; padding:1rem 1.25rem; margin:1.25rem 0;">
                 <div style="text-align:center;">
@@ -540,7 +546,8 @@ def render_overview():
             """, unsafe_allow_html=True)
             
             if st.button("→ Explore a building configuration", type="primary", use_container_width=True):
-                go_to("Prediction")
+                st.session_state.page = "Prediction"
+                st.rerun()
 
     with right:
         with st.container(border=True):
@@ -564,22 +571,22 @@ def render_overview():
 
     st.write("")
 
-    # Bottom row: Dataset info & Prediction history
     b_left, b_right = st.columns(2, gap="large")
     with b_left:
         with st.container(border=True):
             st.markdown('<h3 style="margin-top:0; font-size:1.2rem; margin-bottom:.5rem;">Built on the UCI Energy Efficiency dataset</h3>', unsafe_allow_html=True)
             st.markdown('<p class="subtle" style="font-size:.85rem;">768 simulated configurations describe building form, dimensions, orientation, and glazing—not measured building consumption.</p>', unsafe_allow_html=True)
             if st.button("About the dataset and models →", use_container_width=False):
-                go_to("About")
+                st.session_state.page = "About"
+                st.rerun()
     with b_right:
         with st.container(border=True):
             st.markdown('<h3 style="margin-top:0; font-size:1.2rem; margin-bottom:.5rem;">Your prediction history</h3>', unsafe_allow_html=True)
             st.markdown('<p class="subtle" style="font-size:.85rem;">No saved predictions yet. Start with a configuration, then return to review your saved estimates.</p>', unsafe_allow_html=True)
             if st.button("Go to prediction →", use_container_width=False):
-                go_to("Prediction")
+                st.session_state.page = "Prediction"
+                st.rerun()
 
-    # Bottom banner notice matching image_3
     st.markdown(f"""
     <div style="background:#EBF8F9; border:1px solid #BCE3E5; border-radius:14px; padding:1.15rem 1.4rem; margin-top:1.5rem; display:flex; align-items:center; gap:1rem;">
         <span style="font-size:1.25rem;">ℹ️</span>
@@ -590,7 +597,6 @@ def render_overview():
     </div>
     """, unsafe_allow_html=True)
 
-    # Footer matching image_3
     st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1rem; border-top:1px solid {BORDER}; font-size:.8rem; color:{MUTED};">
         <span>ArchiLoad AI - Early-stage building energy exploration</span>
@@ -600,6 +606,7 @@ def render_overview():
 
 
 def reset_prediction_inputs():
+    """Reset prediction widgets to the example values shown in the design."""
     for key, value in DEFAULT_INPUTS.items():
         st.session_state[f"prediction_{key}"] = value
 
@@ -608,10 +615,16 @@ def render_prediction():
     for key, value in DEFAULT_INPUTS.items():
         st.session_state.setdefault(f"prediction_{key}", value)
     
+    meta = user_metadata()
+    first = str(meta.get("first_name", "")).strip()
+    last = str(meta.get("last_name", "")).strip()
+    initials = ((first[:1] + last[:1]) or current_email()[:1] or "AL").upper()
+    name = display_name()
+
     st.markdown(f"""
     <div class="topbar">
         <div class="topbar-label">Workspace &nbsp;&nbsp;›&nbsp;&nbsp; <b>Prediction</b></div>
-        <div class="profile-chip"><span class="profile-initials">AL</span><span>Alex Lee</span></div>
+        <div class="profile-chip"><span class="profile-initials">{initials}</span><span>{name}</span></div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -629,16 +642,26 @@ def render_prediction():
                 x, y = st.columns(2, gap="medium")
                 with x:
                     st.markdown(f'<div class="section-label">Form &amp; dimensions</div>', unsafe_allow_html=True)
-                    relative_compactness = st.number_input("Relative Compactness", .60, 1.00, step=.01, format="%.2f", key="prediction_relative_compactness")
+                    relative_compactness = st.number_input("Relative Compactness", .60, 1.00, step=.01, format="%.2f", help="Building form compactness", key="prediction_relative_compactness")
+                    st.caption("Building form compactness")
                     surface_area = st.number_input("Surface Area (m²)", 500.0, 820.0, step=1.5, format="%.2f", key="prediction_surface_area")
+                    st.caption("Total building surface area")
                     wall_area = st.number_input("Wall Area (m²)", 240.0, 420.0, step=1.0, format="%.2f", key="prediction_wall_area")
+                    st.caption("Exterior wall area")
                     roof_area = st.number_input("Roof Area (m²)", 100.0, 225.0, step=1.0, format="%.2f", key="prediction_roof_area")
+                    st.caption("Total roof area")
                 with y:
                     st.markdown(f'<div class="section-label">Height, orientation &amp; glazing</div>', unsafe_allow_html=True)
-                    overall_height = st.selectbox("Overall Height (m)", [3.5, 7.0], key="prediction_overall_height")
-                    orientation = st.selectbox("Orientation", [2, 3, 4, 5], key="prediction_orientation")
-                    glazing_area = st.selectbox("Glazing Area", [0.00, 0.10, 0.25, 0.40], format_func=lambda v: f"{v:.2f}", key="prediction_glazing_area")
-                    glazing_distribution = st.selectbox("Glazing Area Distribution", [0, 1, 2, 3, 4, 5], key="prediction_glazing_distribution")
+                    overall_height = st.selectbox("Overall Height (m)", [3.5, 7.0], help="Building height", key="prediction_overall_height")
+                    st.caption("Building height")
+                    orientation = st.selectbox("Orientation", [2, 3, 4, 5], help="Dataset orientation code", key="prediction_orientation")
+                    st.caption("Dataset orientation code")
+                    glazing_area = st.selectbox("Glazing Area", [0.00, 0.10, 0.25, 0.40], format_func=lambda v: f"{v:.2f}", help="Glazing area proportion", key="prediction_glazing_area")
+                    st.caption("Glazing area proportion")
+                    glazing_distribution = st.selectbox("Glazing Area Distribution", [0, 1, 2, 3, 4, 5], help="Dataset distribution code", key="prediction_glazing_distribution")
+                    st.caption("Dataset distribution code")
+                if preferences().get("parameter_guidance", True):
+                    st.caption("Design tip: compare alternatives by changing one input at a time.")
                 submitted = st.form_submit_button("Predict Heating and Cooling Loads", type="primary", use_container_width=True)
             
             reset_col, hint_col = st.columns([.7, 1.3])
@@ -702,10 +725,16 @@ def render_prediction():
 
 
 def render_about():
+    meta = user_metadata()
+    first = str(meta.get("first_name", "")).strip()
+    last = str(meta.get("last_name", "")).strip()
+    initials = ((first[:1] + last[:1]) or current_email()[:1] or "AL").upper()
+    name = display_name()
+
     st.markdown(f"""
     <div class="topbar">
         <div class="topbar-label">Workspace &nbsp;&nbsp;›&nbsp;&nbsp; <b>About</b></div>
-        <div class="profile-chip"><span class="profile-initials">AL</span><span>Alex Lee</span></div>
+        <div class="profile-chip"><span class="profile-initials">{initials}</span><span>{name}</span></div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -720,26 +749,37 @@ def render_about():
                 st.markdown('<h3 style="margin-top:0;">Dataset</h3>', unsafe_allow_html=True)
                 st.markdown("**UCI Energy Efficiency dataset**")
                 st.markdown("- 768 simulated building configurations\n- 8 building-form and glazing inputs\n- 2 targets: heating load and cooling load")
+                st.caption("Simulated records do not represent every real building, climate, or operating condition.")
         with b:
             with st.container(border=True):
-                st.markdown('<h3 style="margin-top:0;">Trained regressors</h3>', unsafe_allow_html=True)
-                st.markdown("**Scikit-learn pipeline**")
-                st.markdown("- `heating_model.pkl`\n- `cooling_model.pkl`\n- `feature_columns.pkl`")
+                st.markdown('<h3 style="margin-top:0;">Regression models</h3>', unsafe_allow_html=True)
+                st.markdown("The application loads `heating_model.pkl` and `cooling_model.pkl`. `feature_columns.pkl` supplies the feature names and order expected by the models.")
+                st.markdown("Training and evaluation are completed separately from the deployed Streamlit interface.")
     with tabs[1]:
         with st.container(border=True):
-            st.markdown('<h3 style="margin-top:0;">Model evaluation metrics</h3>', unsafe_allow_html=True)
-            metrics_data = []
-            for target, mvals in REPORTED_METRICS.items():
-                metrics_data.append({"Target": target, "MAE": mvals["MAE"], "RMSE": mvals["RMSE"], "R²": mvals["R²"]})
-            st.dataframe(pd.DataFrame(metrics_data), use_container_width=True, hide_index=True)
+            st.markdown('<h3 style="margin-top:0;">Reported evaluation results</h3>', unsafe_allow_html=True)
+            st.markdown("Verify these figures against the exact deployed model files before using them in a formal report.")
+            st.dataframe(pd.DataFrame([{"Target": target, **metrics} for target, metrics in REPORTED_METRICS.items()]), use_container_width=True, hide_index=True)
+        a, b, c = st.columns(3)
+        with a:
+            st.markdown("**MAE**")
+            st.caption("Mean Absolute Error. Lower values indicate smaller average absolute errors.")
+        with b:
+            st.markdown("**RMSE**")
+            st.caption("Root Mean Squared Error. Larger errors have a greater influence.")
+        with c:
+            st.markdown("**R²**")
+            st.caption("Coefficient of determination. Values closer to 1 generally indicate a stronger fit.")
     with tabs[2]:
         with st.container(border=True):
-            st.markdown('<h3 style="margin-top:0;">Design relevance & exploration</h3>', unsafe_allow_html=True)
-            st.markdown("ArchiLoad AI is designed for early-stage conceptual exploration, helping designers evaluate compactness, surface area, and glazing fractions quickly.")
+            st.markdown('<h3 style="margin-top:0;">Relevance to architectural design</h3>', unsafe_allow_html=True)
+            st.markdown("ArchiLoad AI supports early-stage comparison of building compactness, surface areas, height, orientation, and glazing choices.")
+            st.markdown("- Compare alternative parameter combinations.\n- Treat changes in predicted loads as prompts for further investigation.\n- Use detailed energy simulation and professional review for consequential design decisions.")
     with tabs[3]:
         with st.container(border=True):
-            st.markdown('<h3 style="margin-top:0;">Responsible use & limitations</h3>', unsafe_allow_html=True)
-            st.markdown("Estimates are for preliminary exploration and educational purposes only. They are not a substitute for professional engineering reviews or dynamic thermal simulations.")
+            st.markdown('<h3 style="margin-top:0;">Limitations and responsible use</h3>', unsafe_allow_html=True)
+            st.markdown("- The model is based on a finite set of simulated building configurations.\n- Climate, occupancy, schedules, HVAC systems, construction details, and other factors are not fully represented.\n- Results are not measured building performance, utility-cost estimates, code-compliance checks, certification, or final engineering calculations.\n- Validate important design decisions with appropriate tools and qualified professionals.")
+            st.markdown('<div class="warning">Use the model to explore—not to certify.</div>', unsafe_allow_html=True)
     
     st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1rem; border-top:1px solid {BORDER}; font-size:.8rem; color:{MUTED};">
@@ -750,114 +790,174 @@ def render_about():
 
 
 def render_settings():
+    meta = user_metadata()
+    first = str(meta.get("first_name", "")).strip()
+    last = str(meta.get("last_name", "")).strip()
+    initials = ((first[:1] + last[:1]) or current_email()[:1] or "AL").upper()
+    name = display_name()
+
     st.markdown(f"""
     <div class="topbar">
         <div class="topbar-label">Workspace &nbsp;&nbsp;›&nbsp;&nbsp; <b>Settings</b></div>
-        <div class="profile-chip"><span class="profile-initials">AL</span><span>Alex Lee</span></div>
+        <div class="profile-chip"><span class="profile-initials">{initials}</span><span>{name}</span></div>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown('<div class="hero-title" style="margin-top:0;">Settings</div>', unsafe_allow_html=True)
-    st.markdown('<p class="subtle">Manage your workspace preferences and display options.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtle">Personalize your workspace. These preferences do not change the prediction models.</p>', unsafe_allow_html=True)
     
-    prefs = preferences()
-    with st.container(border=True):
-        st.markdown('<h3 style="margin-top:0;">Workspace preferences</h3>', unsafe_allow_html=True)
-        with st.form("settings_form"):
-            default_page = st.selectbox("Default landing page", ["Overview", "Prediction", "About"],
-                                         index=["Overview", "Prediction", "About"].index(prefs.get("default_page", "Overview")) if prefs.get("default_page") in ["Overview", "Prediction", "About"] else 0)
-            parameter_guidance = st.checkbox("Show parameter hints and design tips", value=prefs.get("parameter_guidance", True))
-            product_updates = st.checkbox("Receive occasional product updates", value=prefs.get("product_updates", False))
-            saved = st.form_submit_button("Save preferences", type="primary")
-        if saved:
-            try:
-                new_prefs = {**prefs, "default_page": default_page, "parameter_guidance": parameter_guidance, "product_updates": product_updates}
-                update_user_metadata({"archiload_preferences": new_prefs})
-                st.success("Preferences updated successfully.")
-            except Exception as exc:
-                st.error(f"Could not save preferences: {exc}")
+    current = preferences()
+    left, right = st.columns([1.15, .85], gap="large")
+    with left:
+        with st.container(border=True):
+            st.markdown('<h3 style="margin-top:0;">Application preferences</h3>', unsafe_allow_html=True)
+            with st.form("settings_form"):
+                language = st.selectbox("Language", ["English"], index=0, help="English is currently the available interface language.")
+                choices = ["Overview", "Prediction", "About"]
+                default_page = st.selectbox("Default page after sign-in", choices, index=choices.index(current.get("default_page", "Overview")) if current.get("default_page") in choices else 0)
+                parameter_guidance = st.toggle("Show parameter guidance", value=bool(current.get("parameter_guidance", True)))
+                st.markdown("---")
+                st.markdown('<h3 style="margin-top:0; font-size:1.1rem;">Communication preferences</h3>', unsafe_allow_html=True)
+                product_updates = st.toggle("Product updates", value=bool(current.get("product_updates", False)))
+                getting_started_tips = st.toggle("Getting-started tips", value=bool(current.get("getting_started_tips", True)))
+                st.caption("Essential account and security emails may still be sent when needed.")
+                submitted = st.form_submit_button("Save preferences", type="primary", use_container_width=True)
+            if submitted:
+                prefs = {"language": language, "default_page": default_page, "parameter_guidance": parameter_guidance,
+                         "product_updates": product_updates, "getting_started_tips": getting_started_tips}
+                try:
+                    update_user_metadata({"archiload_preferences": prefs})
+                    st.success("Preferences saved to your account.")
+                    st.rerun()
+                except Exception as exc:
+                    st.error("Preferences could not be saved. Check Supabase Auth configuration.")
+                    st.caption(str(exc))
+    with right:
+        with st.container(border=True):
+            st.markdown('<h3 style="margin-top:0;">Account settings</h3>', unsafe_allow_html=True)
+            st.markdown("Manage your profile, password, and saved predictions from your account page.")
+            if st.button("Go to account  →", use_container_width=True):
+                st.session_state.page = "Account"
+                st.rerun()
+        with st.container(border=True):
+            st.markdown('<h3 style="margin-top:0;">Preferences, not model controls</h3>', unsafe_allow_html=True)
+            st.markdown("These settings personalize the workspace only. They do not tune the trained models or change previously saved predictions.")
 
 
 def render_account():
+    meta = user_metadata()
+    email = current_email()
+    first_default, last_default = str(meta.get("first_name", "")), str(meta.get("last_name", ""))
+    initials = ((first_default[:1] + last_default[:1]) or email[:1] or "AL").upper()
+    name = display_name()
+
     st.markdown(f"""
     <div class="topbar">
         <div class="topbar-label">Workspace &nbsp;&nbsp;›&nbsp;&nbsp; <b>Account</b></div>
-        <div class="profile-chip"><span class="profile-initials">AL</span><span>Alex Lee</span></div>
+        <div class="profile-chip"><span class="profile-initials">{initials}</span><span>{name}</span></div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="hero-title" style="margin-top:0;">Account</div>', unsafe_allow_html=True)
-    st.markdown('<p class="subtle">Manage your personal profile and account credentials.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-title" style="margin-top:0;">My account</div>', unsafe_allow_html=True)
+    st.markdown('<p class="subtle">Manage your profile, security, and saved predictions.</p>', unsafe_allow_html=True)
     
-    meta = user_metadata()
-    with st.container(border=True):
-        st.markdown('<h3 style="margin-top:0;">Profile details</h3>', unsafe_allow_html=True)
-        with st.form("profile_form"):
-            first_name = st.text_input("First name", value=meta.get("first_name", "Alex"))
-            last_name = st.text_input("Last name", value=meta.get("last_name", "Lee"))
-            email = st.text_input("Email address", value=current_email() or "alex.lee@example.com", disabled=True)
-            submitted = st.form_submit_button("Update profile", type="primary")
-        if submitted:
-            try:
-                update_user_metadata({"first_name": first_name.strip(), "last_name": last_name.strip()})
-                st.success("Profile updated successfully.")
-                st.rerun()
-            except Exception as exc:
-                st.error(f"Could not update profile: {exc}")
+    try:
+        count = len(fetch_predictions(10000))
+        count_text = f"{count}+" if count == 10000 else str(count)
+    except Exception:
+        count_text = "—"
     
-    with st.container(border=True):
-        st.markdown('<h3 style="margin-top:0;">Security</h3>', unsafe_allow_html=True)
-        with st.form("password_form"):
-            new_password = st.text_input("New password", type="password")
-            confirm_password = st.text_input("Confirm new password", type="password")
-            pass_submitted = st.form_submit_button("Update password")
-        if pass_submitted:
-            if not new_password:
-                st.warning("Enter a new password.")
-            elif new_password != confirm_password:
-                st.warning("The passwords do not match.")
-            elif len(new_password) < 6:
-                st.warning("Use a password with at least 6 characters.")
-            else:
+    left, right = st.columns([1.08, .92], gap="large")
+    with left:
+        with st.container(border=True):
+            st.markdown(f'<div style="display:flex;align-items:center;gap:1rem"><div style="background:#E3F4F3;color:{TEAL};border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem">{initials}</div><div><h2 style="margin:0">{name}</h2><span class="pill">Signed-in account</span></div></div>', unsafe_allow_html=True)
+            st.write("")
+            st.markdown(f"**Email address**  \n{email}")
+            st.caption("Your saved predictions are associated with this account.")
+        with st.container(border=True):
+            st.markdown('<h3 style="margin-top:0;">Personal profile</h3>', unsafe_allow_html=True)
+            with st.form("profile_form"):
+                first_name = st.text_input("First name", value=first_default)
+                last_name = st.text_input("Last name", value=last_default)
+                st.text_input("Email address", value=email, disabled=True)
+                save_profile = st.form_submit_button("Save profile", type="primary", use_container_width=True)
+            if save_profile:
                 try:
-                    client = st.session_state.get("supabase")
-                    client.auth.update_user({"password": new_password})
-                    st.success("Password updated successfully.")
+                    update_user_metadata({"first_name": first_name.strip(), "last_name": last_name.strip()})
+                    st.success("Profile updated.")
+                    st.rerun()
                 except Exception as exc:
-                    st.error(f"Could not update password: {exc}")
+                    st.error(f"Could not update profile. Details: {exc}")
+    with right:
+        with st.container(border=True):
+            st.markdown('<h3 style="margin-top:0;">Security & sign-in</h3>', unsafe_allow_html=True)
+            st.markdown("**Password management**")
+            st.caption("Your current password is never displayed.")
+            with st.form("password_form"):
+                new_password = st.text_input("New password", type="password")
+                confirm_password = st.text_input("Confirm new password", type="password")
+                change_password = st.form_submit_button("Change password", type="primary", use_container_width=True)
+            if change_password:
+                if len(new_password) < 6:
+                    st.warning("Use a password with at least 6 characters.")
+                elif new_password != confirm_password:
+                    st.warning("The passwords do not match.")
+                else:
+                    try:
+                        st.session_state.supabase.auth.update_user({"password": new_password})
+                        st.success("Password updated.")
+                    except Exception as exc:
+                        st.error(f"Could not update password. Details: {exc}")
+            st.markdown("---")
+            if st.button("Sign out", use_container_width=True):
+                sign_out()
+        with st.container(border=True):
+            st.markdown('<h3 style="margin-top:0;">Saved predictions</h3>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-value">{count_text}</div>', unsafe_allow_html=True)
+            st.caption("Predictions saved to your account")
+            if st.button("My prediction history", use_container_width=True):
+                st.session_state.page = "Prediction"
+                st.rerun()
+    with st.container(border=True):
+        st.markdown('<h3 style="margin-top:0;">Make the workspace yours</h3>', unsafe_allow_html=True)
+        st.write("Adjust workspace preferences without changing the underlying prediction models.")
+        if st.button("Open settings", use_container_width=True):
+            st.session_state.page = "Settings"
+            st.rerun()
+    
+    st.markdown(f"""
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1rem; border-top:1px solid {BORDER}; font-size:.8rem; color:{MUTED};">
+        <span>ArchiLoad AI - Early-stage building energy exploration</span>
+        <span>UCI Energy Efficiency dataset</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def main():
-    supabase_url = secret_value("SUPABASE_URL")
-    supabase_key = secret_value("SUPABASE_KEY")
-    if not supabase_url or not supabase_key:
-        st.error("Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_KEY in your Streamlit secrets.")
-        return
-
-    client = get_supabase_client(supabase_url, supabase_key)
-    st.session_state.supabase = client
-
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
-
-    if not st.session_state.authenticated:
+    st.session_state.setdefault("page", "Overview")
+    st.session_state.setdefault("authenticated", False)
+    url = secret_value("SUPABASE_URL")
+    key = secret_value("SUPABASE_KEY")
+    if not url or not key:
+        st.error("Supabase connection settings are missing.")
+        st.markdown("Add `SUPABASE_URL` and `SUPABASE_KEY` under **Streamlit Cloud → App settings → Secrets**.")
+        st.code('SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"\nSUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"', language="toml")
+        st.info("Use your project's publishable/anon key. Never place a service-role key in a public app.")
+        st.stop()
+    try:
+        client = get_supabase_client(str(url), str(key))
+        st.session_state.supabase = client
+    except Exception as exc:
+        st.error("Could not initialize Supabase.")
+        st.exception(exc)
+        st.stop()
+    if not st.session_state.get("authenticated") or st.session_state.get("user") is None:
         render_auth(client)
         return
-
     render_sidebar()
     page = st.session_state.get("page", "Overview")
-    if page == "Overview":
-        render_overview()
-    elif page == "Prediction":
-        render_prediction()
-    elif page == "About":
-        render_about()
-    elif page == "Settings":
-        render_settings()
-    elif page == "Account":
-        render_account()
-    else:
-        render_overview()
+    renderers = {"Overview": render_overview, "Prediction": render_prediction, "About": render_about, "Settings": render_settings, "Account": render_account}
+    renderers.get(page, render_overview)()
 
 
 if __name__ == "__main__":
