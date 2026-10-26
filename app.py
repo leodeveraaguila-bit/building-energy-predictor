@@ -31,21 +31,74 @@ html, body, [class*="css"] {{ font-family: Inter, sans-serif; }}
 [data-testid="stHeader"] {{ background:rgba(244,247,249,.96); }}
 
 /* Exact Sidebar styling matching your design reference */
-[data-testid="stSidebar"] {{ background:{NAVY}; border-right:1px solid #25465B; padding:1.25rem 1rem; }}
+[data-testid="stSidebar"] {{ background:#112331 !important; border-right:1px solid #1E384C; padding:1rem 0.8rem; }}
 [data-testid="stSidebar"] * {{ color:#F7FAFC; }}
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{ color:#C9D8E1; }}
 
-/* Custom Sidebar Navigation Links */
-.sb-logo {{ display:flex; align-items:center; gap:.65rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em; margin-bottom:1.5rem; }}
-.sb-kicker {{ font-size:.7rem; font-weight:700; color:#8FA1B0; letter-spacing:.12em; text-transform:uppercase; margin-bottom:.5rem; margin-top:.5rem; }}
-.sb-nav-item {{ display:flex; align-items:center; justify-content:space-between; padding:.7rem .85rem; border-radius:12px; font-weight:650; font-size:.9rem; color:#C9D8E1; text-decoration:none; margin-bottom:.35rem; transition:all .2s ease; cursor:pointer; }}
-.sb-nav-item:hover {{ background:rgba(255,255,255,0.06); color:white; }}
-.sb-nav-item.active {{ background:#1E3A4D; color:white; border:1px solid rgba(255,255,255,0.08); box-shadow:0 4px 12px rgba(0,0,0,0.15); }}
-.sb-active-indicator {{ width:4px; height:16px; background:#00ACC1; border-radius:4px; }}
+/* Custom styling for sidebar native buttons so they look like sleek nav links */
+[data-testid="stSidebar"] .stButton > button {{
+    background: transparent;
+    border: none;
+    color: #B0C4D3;
+    text-align: left;
+    width: 100%;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    box-shadow: none;
+    margin-bottom: 0.2rem;
+    transition: all 0.15s ease;
+}}
+[data-testid="stSidebar"] .stButton > button:hover {{
+    background: rgba(255, 255, 255, 0.05);
+    color: #FFFFFF;
+    border: none;
+}}
+[data-testid="stSidebar"] .stButton > button:active, [data-testid="stSidebar"] .stButton > button:focus {{
+    background: #1C3649;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}}
 
-.sb-card {{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:1rem; margin-top:2rem; margin-bottom:1.5rem; }}
-.sb-bottom-link {{ display:flex; align-items:center; gap:.75rem; padding:.55rem .75rem; border-radius:8px; font-size:.85rem; font-weight:500; color:#A2B6C3; text-decoration:none; margin-bottom:.15rem; transition:all .2s ease; cursor:pointer; }}
-.sb-bottom-link:hover {{ background:rgba(255,255,255,0.05); color:white; }}
+.sb-brand {{
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.8rem;
+    padding-left: 0.5rem;
+}}
+.sb-brand-icon {{
+    background: #00838F;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}}
+.sb-kicker {{
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #7991A4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    padding-left: 0.5rem;
+}}
+.sb-info-card {{
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+}}
 
 h1,h2,h3 {{ color:{NAVY}; letter-spacing:-.025em; }}
 h1 {{ font-weight:800; }}
@@ -414,155 +467,44 @@ def render_sidebar():
     if current not in ["Overview", "Prediction", "About", "Settings", "Account"]:
         current = "Overview"
 
-    # Handle navigation parameters passed via custom buttons or query triggers
-    params = st.query_params
-    if "nav" in params:
-        target_page = params["nav"]
-        if target_page in ["Overview", "Prediction", "About", "Settings", "Account"]:
-            st.session_state.page = target_page
-        elif target_page == "Signout":
-            sign_out()
-        st.query_params.clear()
-        st.rerun()
-
     with st.sidebar:
-        # Custom CSS for clean dark sidebar styling without white default Streamlit buttons
-        st.markdown(f"""
-        <style>
-        [data-testid="stSidebar"] {{
-            background-color: #112331 !important;
-            border-right: 1px solid #1E384C;
-            padding: 1rem 0.8rem;
-        }}
-        .sb-brand {{
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #FFFFFF;
-            letter-spacing: -0.02em;
-            margin-bottom: 1.8rem;
-        }}
-        .sb-brand-icon {{
-            background: #00838F;
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-        }}
-        .sb-kicker {{
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: #7991A4;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            margin-bottom: 0.6rem;
-        }}
-        .sb-item {{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.65rem 0.85rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.88rem;
-            color: #B0C4D3;
-            text-decoration: none;
-            margin-bottom: 0.3rem;
-            transition: all 0.15s ease;
-        }}
-        .sb-item:hover {{
-            background: rgba(255, 255, 255, 0.05);
-            color: #FFFFFF;
-        }}
-        .sb-item.active {{
-            background: #1C3649;
-            color: #FFFFFF;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }}
-        .sb-indicator {{
-            width: 3.5px;
-            height: 15px;
-            background: #00ACC1;
-            border-radius: 4px;
-        }}
-        .sb-info-card {{
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 14px;
-            padding: 1rem;
-            margin-top: 3.5rem;
-            margin-bottom: 1.5rem;
-        }}
-        .sb-bottom-item {{
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.55rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #B0C4D3;
-            text-decoration: none;
-            margin-bottom: 0.2rem;
-            transition: all 0.15s ease;
-        }}
-        .sb-bottom-item:hover {{
-            background: rgba(255, 255, 255, 0.05);
-            color: #FFFFFF;
-        }}
-        </style>
-
+        st.markdown("""
         <div class="sb-brand">
             <span class="sb-brand-icon">🏗️</span>
             <span>ArchiLoad AI</span>
         </div>
+        """, unsafe_allow_html=True)
 
-        <div class="sb-kicker">PERSONAL WORKSPACE</div>
+        st.markdown('<div class="sb-kicker">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
 
-        <a href="?nav=Overview" target="_self" class="sb-item {'active' if current == 'Overview' else ''}">
-            <div style="display:flex; align-items:center; gap:.6rem;">
-                <span>🎛️</span> Overview
-            </div>
-            {'<div class="sb-indicator"></div>' if current == 'Overview' else ''}
-        </a>
+        if st.button("📊  Overview", key="nav_overview", use_container_width=True):
+            st.session_state.page = "Overview"
+            st.rerun()
+        if st.button("🎛️  Prediction", key="nav_prediction", use_container_width=True):
+            st.session_state.page = "Prediction"
+            st.rerun()
+        if st.button("📖  About", key="nav_about", use_container_width=True):
+            st.session_state.page = "About"
+            st.rerun()
 
-        <a href="?nav=Prediction" target="_self" class="sb-item {'active' if current == 'Prediction' else ''}">
-            <div style="display:flex; align-items:center; gap:.6rem;">
-                <span>🎚️</span> Prediction
-            </div>
-            {'<div class="sb-indicator"></div>' if current == 'Prediction' else ''}
-        </a>
-
-        <a href="?nav=About" target="_self" class="sb-item {'active' if current == 'About' else ''}">
-            <div style="display:flex; align-items:center; gap:.6rem;">
-                <span>📖</span> About
-            </div>
-            {'<div class="sb-indicator"></div>' if current == 'About' else ''}
-        </a>
-
+        st.markdown("""
         <div class="sb-info-card">
             <div style="font-size:1.1rem; margin-bottom:.3rem;">🌱</div>
             <div style="font-weight:700; font-size:.85rem; color:white; margin-bottom:.3rem;">Better early-stage decisions</div>
             <div style="font-size:.75rem; color:#A2B6C3; line-height:1.5;">Explore building form, orientation, and glazing before detailed analysis.</div>
         </div>
-
-        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.8rem;">
-            <a href="?nav=Settings" target="_self" class="sb-bottom-item">
-                <span>⚙️</span> Settings
-            </a>
-            <a href="?nav=Account" target="_self" class="sb-bottom-item">
-                <span>👤</span> Account
-            </a>
-            <a href="?nav=Signout" target="_self" class="sb-bottom-item">
-                <span>🚪</span> Sign out
-            </a>
-        </div>
         """, unsafe_allow_html=True)
+
+        st.markdown('<hr style="border:0; border-top:1px solid rgba(255,255,255,0.08); margin: 1.5rem 0 1rem 0;">', unsafe_allow_html=True)
+
+        if st.button("⚙️  Settings", key="nav_settings", use_container_width=True):
+            st.session_state.page = "Settings"
+            st.rerun()
+        if st.button("👤  Account", key="nav_account", use_container_width=True):
+            st.session_state.page = "Account"
+            st.rerun()
+        if st.button("🚪  Sign out", key="nav_signout", use_container_width=True):
+            sign_out()
 
 
 def render_overview():
