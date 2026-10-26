@@ -169,7 +169,6 @@ def secret_value(name, default=None):
         return default
 
 
-@st.cache_resource(show_spinner=False)
 def get_supabase_client(url, key):
     return create_client(url, key)
 
@@ -1062,12 +1061,26 @@ def main():
         st.info("Use your project's publishable/anon key. Never place a service-role key in a public app.")
         st.stop()
     try:
-        client = get_supabase_client(str(url), str(key))
-        st.session_state.supabase = client
-    except Exception as exc:
-        st.error("Could not initialize Supabase.")
-        st.exception(exc)
-        st.stop()
+    # Keep a separate Supabase client for this Streamlit session.
+    # Reuse it across reruns so the user's login session is preserved.
+    config = (str(url), str(key))
+
+    if (
+        "supabase" not in st.session_state
+        or st.session_state.get("supabase_config") != config
+    ):
+        st.session_state.supabase = get_supabase_client(
+            str(url),
+            str(key)
+        )
+        st.session_state.supabase_config = config
+
+    client = st.session_state.supabase
+
+except Exception:
+    st.error("Could not initialize Supabase.")
+    st.exception(Exception("Check your Supabase URL and API key."))
+    st.stop()
     if not st.session_state.get("authenticated") or st.session_state.get("user") is None:
         render_auth(client)
         return
