@@ -1063,7 +1063,7 @@ def main():
     try:
     # Keep a separate Supabase client for this Streamlit session.
     # Reuse it across reruns so the user's login session is preserved.
-    config = (str(url), str(key))
+        config = (str(url), str(key))
 
     if (
         "supabase" not in st.session_state
@@ -1077,13 +1077,13 @@ def main():
 
     client = st.session_state.supabase
 
-except Exception:
-    st.error("Could not initialize Supabase.")
-    st.exception(Exception("Check your Supabase URL and API key."))
-    st.stop()
-    if not st.session_state.get("authenticated") or st.session_state.get("user") is None:
-        render_auth(client)
-        return
+    except Exception:
+        st.error("Could not initialize Supabase.")
+        st.exception(Exception("Check your Supabase URL and API key."))
+        st.stop()
+        if not st.session_state.get("authenticated") or st.session_state.get("user") is None:
+            render_auth(client)
+            return
     render_sidebar()
     page = st.session_state.get("page", "Overview")
     renderers = {"Overview": render_overview, "Prediction": render_prediction, "About": render_about, "Settings": render_settings, "Account": render_account}
