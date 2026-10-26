@@ -1068,7 +1068,7 @@ def main():
     if (
         "supabase" not in st.session_state
         or st.session_state.get("supabase_config") != config
-    ):
+        ):
         st.session_state.supabase = get_supabase_client(
             str(url),
             str(key)
