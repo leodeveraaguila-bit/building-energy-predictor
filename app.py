@@ -414,36 +414,153 @@ def render_sidebar():
     if current not in ["Overview", "Prediction", "About", "Settings", "Account"]:
         current = "Overview"
 
+    # Handle navigation parameters passed via custom buttons or query triggers
+    params = st.query_params
+    if "nav" in params:
+        target_page = params["nav"]
+        if target_page in ["Overview", "Prediction", "About", "Settings", "Account"]:
+            st.session_state.page = target_page
+        elif target_page == "Signout":
+            sign_out()
+        st.query_params.clear()
+        st.rerun()
+
     with st.sidebar:
-        # Logo and Title
-        st.markdown("""
-        <div class="sb-logo">
-            <span style="font-size: 1.4rem;">🏗️</span> ArchiLoad AI
+        # Custom CSS for clean dark sidebar styling without white default Streamlit buttons
+        st.markdown(f"""
+        <style>
+        [data-testid="stSidebar"] {{
+            background-color: #112331 !important;
+            border-right: 1px solid #1E384C;
+            padding: 1rem 0.8rem;
+        }}
+        .sb-brand {{
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.8rem;
+        }}
+        .sb-brand-icon {{
+            background: #00838F;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }}
+        .sb-kicker {{
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #7991A4;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 0.6rem;
+        }}
+        .sb-item {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #B0C4D3;
+            text-decoration: none;
+            margin-bottom: 0.3rem;
+            transition: all 0.15s ease;
+        }}
+        .sb-item:hover {{
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+        }}
+        .sb-item.active {{
+            background: #1C3649;
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }}
+        .sb-indicator {{
+            width: 3.5px;
+            height: 15px;
+            background: #00ACC1;
+            border-radius: 4px;
+        }}
+        .sb-info-card {{
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-top: 3.5rem;
+            margin-bottom: 1.5rem;
+        }}
+        .sb-bottom-item {{
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.55rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #B0C4D3;
+            text-decoration: none;
+            margin-bottom: 0.2rem;
+            transition: all 0.15s ease;
+        }}
+        .sb-bottom-item:hover {{
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+        }}
+        </style>
+
+        <div class="sb-brand">
+            <span class="sb-brand-icon">🏗️</span>
+            <span>ArchiLoad AI</span>
         </div>
-        """, unsafe_allow_html=True)
 
-        st.markdown('<div class="sb-kicker">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
+        <div class="sb-kicker">PERSONAL WORKSPACE</div>
 
-        # Navigation links using query parameter buttons or state management
-        def nav_button(page_name, icon, label):
-            is_active = (current == page_name)
-            active_class = " active" if is_active else ""
-            indicator = '<div class="sb-active-indicator"></div>' if is_active else ''
-            
-            if st.button(f"{icon}  {label}", key=f"nav_{page_name}", use_container_width=True, type="secondary" if not is_active else "primary"):
-                st.session_state.page = page_name
-                st.rerun()
+        <a href="?nav=Overview" target="_self" class="sb-item {'active' if current == 'Overview' else ''}">
+            <div style="display:flex; align-items:center; gap:.6rem;">
+                <span>🎛️</span> Overview
+            </div>
+            {'<div class="sb-indicator"></div>' if current == 'Overview' else ''}
+        </a>
 
-        nav_button("Overview", "📊", "Overview")
-        nav_button("Prediction", "🎛️", "Prediction")
-        nav_button("About", "📖", "About")
+        <a href="?nav=Prediction" target="_self" class="sb-item {'active' if current == 'Prediction' else ''}">
+            <div style="display:flex; align-items:center; gap:.6rem;">
+                <span>🎚️</span> Prediction
+            </div>
+            {'<div class="sb-indicator"></div>' if current == 'Prediction' else ''}
+        </a>
 
-        # Sidebar middle card
-        st.markdown("""
-        <div class="sb-card">
+        <a href="?nav=About" target="_self" class="sb-item {'active' if current == 'About' else ''}">
+            <div style="display:flex; align-items:center; gap:.6rem;">
+                <span>📖</span> About
+            </div>
+            {'<div class="sb-indicator"></div>' if current == 'About' else ''}
+        </a>
+
+        <div class="sb-info-card">
             <div style="font-size:1.1rem; margin-bottom:.3rem;">🌱</div>
             <div style="font-weight:700; font-size:.85rem; color:white; margin-bottom:.3rem;">Better early-stage decisions</div>
             <div style="font-size:.75rem; color:#A2B6C3; line-height:1.5;">Explore building form, orientation, and glazing before detailed analysis.</div>
+        </div>
+
+        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.8rem;">
+            <a href="?nav=Settings" target="_self" class="sb-bottom-item">
+                <span>⚙️</span> Settings
+            </a>
+            <a href="?nav=Account" target="_self" class="sb-bottom-item">
+                <span>👤</span> Account
+            </a>
+            <a href="?nav=Signout" target="_self" class="sb-bottom-item">
+                <span>🚪</span> Sign out
+            </a>
         </div>
         """, unsafe_allow_html=True)
 
