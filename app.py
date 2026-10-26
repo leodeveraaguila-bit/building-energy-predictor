@@ -30,17 +30,17 @@ html, body, [class*="css"] {{ font-family: Inter, sans-serif; }}
 .stApp {{ background:{BG}; color:{INK}; }}
 [data-testid="stHeader"] {{ background:rgba(244,247,249,.96); }}
 
-/* Sidebar styling matching modern reference */
+/* Sidebar styling matching your design reference */
 [data-testid="stSidebar"] {{ background:{NAVY}; border-right:1px solid #25465B; padding-top:1rem; }}
 [data-testid="stSidebar"] * {{ color:#F7FAFC; }}
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{ color:#C9D8E1; }}
 [data-testid="stSidebar"] hr {{ border-color:#365367; }}
-[data-testid="stSidebar"] [data-testid="stRadio"] label {{ padding:.5rem .75rem; border-radius:8px; font-weight:600; font-size:.9rem; margin-bottom:.2rem; }}
-[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {{ background:#234357; }}
+[data-testid="stSidebar"] [data-testid="stRadio"] label {{ padding:.5rem .75rem; border-radius:10px; font-weight:600; font-size:.9rem; margin-bottom:.25rem; }}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {{ background:#1E3A4C; }}
 
-/* Sidebar footer buttons */
-[data-testid="stSidebar"] .stButton > button {{ background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #C9D8E1; font-size: 0.78rem; border-radius: 8px; min-height: 2.2rem; }}
-[data-testid="stSidebar"] .stButton > button:hover {{ background: rgba(255,255,255,0.08); color: white; border-color: rgba(255,255,255,0.3); }}
+/* Sidebar bottom buttons */
+[data-testid="stSidebar"] .stButton > button {{ background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #C9D8E1; font-size: 0.76rem; border-radius: 8px; min-height: 2.3rem; padding: 0.2rem 0.4rem; }}
+[data-testid="stSidebar"] .stButton > button:hover {{ background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.25); }}
 
 h1,h2,h3 {{ color:{NAVY}; letter-spacing:-.025em; }}
 h1 {{ font-weight:800; }}
@@ -419,17 +419,18 @@ def render_sidebar():
             st.markdown('<div style="display:flex; align-items:center; gap:.5rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em;"><span style="background:#00838F; width:24px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏗️</span> ArchiLoad AI</div>', unsafe_allow_html=True)
         
         st.write("")
-        st.markdown('<div class="sidebar-caption" style="letter-spacing:.12em;font-weight:800;margin-top:.5rem">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-caption" style="letter-spacing:.12em;font-weight:800;margin-top:.75rem;margin-bottom:.25rem">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
         
         selected = st.radio("Workspace navigation", pages, index=pages.index(current) if current in pages else 0, label_visibility="collapsed", key="sidebar_page")
         if selected != current and selected in pages:
             st.session_state.page = selected
             st.rerun()
 
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br>", unsafe_allow_html=True)
         
+        # Sidebar informational card matching your reference design
         st.markdown(f"""
-        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.1rem; margin-bottom:1rem;">
+        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.1rem; margin-bottom:1.5rem;">
             <div style="font-size:1.1rem; margin-bottom:.3rem;">🌱</div>
             <div style="font-weight:700; font-size:.85rem; color:white; margin-bottom:.3rem;">Better early-stage decisions</div>
             <div style="font-size:.75rem; color:#A2B6C3; line-height:1.5;">Explore building form, orientation, and glazing before detailed analysis.</div>
@@ -438,6 +439,7 @@ def render_sidebar():
         
         st.markdown("---")
         
+        # 3-column layout for Settings, Account, and Sign out at the bottom of the sidebar
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
             if st.button("⚙️ Settings", use_container_width=True):
@@ -453,7 +455,6 @@ def render_sidebar():
 
 
 def render_overview():
-    # Top bar matching reference screenshot
     meta = user_metadata()
     first = str(meta.get("first_name", "")).strip()
     last = str(meta.get("last_name", "")).strip()
@@ -606,7 +607,6 @@ def render_overview():
 
 
 def reset_prediction_inputs():
-    """Reset prediction widgets to the example values shown in the design."""
     for key, value in DEFAULT_INPUTS.items():
         st.session_state[f"prediction_{key}"] = value
 
