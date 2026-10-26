@@ -564,18 +564,6 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown('<hr style="border:0; border-top:1px solid #25465B; margin: 1.5rem 0 1rem 0;">', unsafe_allow_html=True)
-
-        # Bottom vertical links for Settings, Account, Sign out
-        if st.button("⚙️  Settings", key="sb_settings", use_container_width=True):
-            st.session_state.page = "Settings"
-            st.rerun()
-        if st.button("👤  Account", key="sb_account", use_container_width=True):
-            st.session_state.page = "Account"
-            st.rerun()
-        if st.button("🚪  Sign out", key="sb_signout", use_container_width=True):
-            sign_out()
-
 
 def render_overview():
     meta = user_metadata()
