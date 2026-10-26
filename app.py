@@ -9,7 +9,7 @@ import streamlit as st
 from supabase import create_client
 
 # ArchiLoad AI — PDF-inspired Streamlit interface
-st.set_page_config(page_title="ArchiLoad AI", page_icon="🏗️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="ArchiLoad AI", page_icon="archiloadai.png", layout="wide", initial_sidebar_state="expanded")
 
 ROOT = Path(__file__).resolve().parent
 NAVY = "#142B3D"
@@ -514,7 +514,7 @@ def render_sidebar():
     with st.sidebar:
         st.markdown("""
         <div class="sb-brand">
-            <span class="sb-brand-icon">🏗️</span>
+            <span class="sb-brand-icon">archiloadai.png</span>
             <span>ArchiLoad AI</span>
         </div>
         """, unsafe_allow_html=True)
