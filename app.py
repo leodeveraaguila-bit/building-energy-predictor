@@ -1052,41 +1052,70 @@ def render_account():
 def main():
     st.session_state.setdefault("page", "Overview")
     st.session_state.setdefault("authenticated", False)
+
     url = secret_value("SUPABASE_URL")
     key = secret_value("SUPABASE_KEY")
+
     if not url or not key:
         st.error("Supabase connection settings are missing.")
-        st.markdown("Add `SUPABASE_URL` and `SUPABASE_KEY` under **Streamlit Cloud → App settings → Secrets**.")
-        st.code('SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"\nSUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"', language="toml")
-        st.info("Use your project's publishable/anon key. Never place a service-role key in a public app.")
+        st.markdown(
+            "Add `SUPABASE_URL` and `SUPABASE_KEY` under "
+            "**Streamlit Cloud → App settings → Secrets**."
+        )
+        st.code(
+            'SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"\n'
+            'SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"',
+            language="toml",
+        )
+        st.info(
+            "Use your project's publishable/anon key. "
+            "Never place a service-role key in a public app."
+        )
         st.stop()
+
     try:
-    # Keep a separate Supabase client for this Streamlit session.
-    # Reuse it across reruns so the user's login session is preserved.
+        # Keep a separate Supabase client for this Streamlit session.
+        # Reuse it across reruns so the user's login session is preserved.
         config = (str(url), str(key))
 
-    if (
-        "supabase" not in st.session_state
-        or st.session_state.get("supabase_config") != config
+        if (
+            "supabase" not in st.session_state
+            or st.session_state.get("supabase_config") != config
         ):
-        st.session_state.supabase = get_supabase_client(
-            str(url),
-            str(key)
-        )
-        st.session_state.supabase_config = config
+            st.session_state.supabase = get_supabase_client(
+                str(url),
+                str(key),
+            )
+            st.session_state.supabase_config = config
 
-    client = st.session_state.supabase
+        client = st.session_state.supabase
 
-    except Exception:
+    except Exception as e:
         st.error("Could not initialize Supabase.")
-        st.exception(Exception("Check your Supabase URL and API key."))
+        st.exception(e)
         st.stop()
-        if not st.session_state.get("authenticated") or st.session_state.get("user") is None:
-            render_auth(client)
-            return
+
+    # Show the login interface when the user is not authenticated.
+    if (
+        not st.session_state.get("authenticated")
+        or st.session_state.get("user") is None
+    ):
+        render_auth(client)
+        return
+
+    # Display the application after successful authentication.
     render_sidebar()
+
     page = st.session_state.get("page", "Overview")
-    renderers = {"Overview": render_overview, "Prediction": render_prediction, "About": render_about, "Settings": render_settings, "Account": render_account}
+
+    renderers = {
+        "Overview": render_overview,
+        "Prediction": render_prediction,
+        "About": render_about,
+        "Settings": render_settings,
+        "Account": render_account,
+    }
+
     renderers.get(page, render_overview)()
 
 
