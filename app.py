@@ -314,6 +314,12 @@ def update_user_metadata(updates):
 
 
 def render_auth(client):
+    
+    # Load logo as base64
+    logo_path = ROOT / "archiloadai.png"
+    logo_b64 = get_base64_logo(logo_path)
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" width="28" style="border-radius:6px; object-fit:contain;" />' if logo_b64 else '<span class="sb-brand-icon">🏗️</span>'
+    
     st.markdown(f"""<style>
     [data-testid="stSidebar"] {{display:none;}}
     .auth-kicker {{color:{TEAL};font-size:.74rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;}}
@@ -343,7 +349,7 @@ def render_auth(client):
         <div class="auth-art">
             <div>
                 <div style="display:flex; align-items:center; gap:.5rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em;">
-                    <span style="background:{TEAL}; width:24px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏗️</span> ArchiLoad AI
+                    <span style="background:{TEAL}; width:24px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">{logo_html}</span> ArchiLoad AI
                 </div>
                 <div style="margin-top:4rem;">
                     <div class="auth-kicker" style="color:#67D0D0;">EARLY-STAGE DESIGN EXPLORATION</div>
