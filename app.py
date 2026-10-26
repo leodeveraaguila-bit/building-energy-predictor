@@ -8,6 +8,15 @@ import pandas as pd
 import streamlit as st
 from supabase import create_client
 
+import base64
+
+def get_base64_logo(path):
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return None
+
+
 # ArchiLoad AI — PDF-inspired Streamlit interface
 st.set_page_config(page_title="ArchiLoad AI", page_icon="archiloadai.png", layout="wide", initial_sidebar_state="expanded")
 
@@ -467,6 +476,11 @@ def render_sidebar():
     if current not in ["Overview", "Prediction", "About", "Settings", "Account"]:
         current = "Overview"
 
+    # Load logo as base64
+    logo_path = ROOT / "archiloadai.png"
+    logo_b64 = get_base64_logo(logo_path)
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" width="28" style="border-radius:6px; object-fit:contain;" />' if logo_b64 else '<span class="sb-brand-icon">🏗️</span>'
+    
     # Inject CSS targeting Streamlit's internal button flex container
     st.markdown("""
     <style>
@@ -512,9 +526,9 @@ def render_sidebar():
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        st.markdown("""
+        st.markdown(f"""
         <div class="sb-brand">
-            <span class="sb-brand-icon">"archiloadai.png"</span>
+            {logo_html}
             <span>ArchiLoad AI</span>
         </div>
         """, unsafe_allow_html=True)
