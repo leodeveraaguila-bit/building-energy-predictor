@@ -514,7 +514,7 @@ def render_sidebar():
     with st.sidebar:
         st.markdown("""
         <div class="sb-brand">
-            <span class="sb-brand-icon">archiloadai.png</span>
+            <span class="sb-brand-icon">"archiloadai.png"</span>
             <span>ArchiLoad AI</span>
         </div>
         """, unsafe_allow_html=True)
