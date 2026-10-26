@@ -30,24 +30,28 @@ html, body, [class*="css"] {{ font-family: Inter, sans-serif; }}
 .stApp {{ background:{BG}; color:{INK}; }}
 [data-testid="stHeader"] {{ background:rgba(244,247,249,.96); }}
 
-/* Sidebar styling matching your design reference */
-[data-testid="stSidebar"] {{ background:{NAVY}; border-right:1px solid #25465B; padding-top:1rem; }}
+/* Exact Sidebar styling matching your design reference */
+[data-testid="stSidebar"] {{ background:{NAVY}; border-right:1px solid #25465B; padding:1.25rem 1rem; }}
 [data-testid="stSidebar"] * {{ color:#F7FAFC; }}
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{ color:#C9D8E1; }}
-[data-testid="stSidebar"] hr {{ border-color:#365367; }}
-[data-testid="stSidebar"] [data-testid="stRadio"] label {{ padding:.5rem .75rem; border-radius:10px; font-weight:600; font-size:.9rem; margin-bottom:.25rem; }}
-[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {{ background:#1E3A4C; }}
 
-/* Sidebar bottom buttons */
-[data-testid="stSidebar"] .stButton > button {{ background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #C9D8E1; font-size: 0.76rem; border-radius: 8px; min-height: 2.3rem; padding: 0.2rem 0.4rem; }}
-[data-testid="stSidebar"] .stButton > button:hover {{ background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.25); }}
+/* Custom Sidebar Navigation Links */
+.sb-logo {{ display:flex; align-items:center; gap:.65rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em; margin-bottom:1.5rem; }}
+.sb-kicker {{ font-size:.7rem; font-weight:700; color:#8FA1B0; letter-spacing:.12em; text-transform:uppercase; margin-bottom:.5rem; margin-top:.5rem; }}
+.sb-nav-item {{ display:flex; align-items:center; justify-content:space-between; padding:.7rem .85rem; border-radius:12px; font-weight:650; font-size:.9rem; color:#C9D8E1; text-decoration:none; margin-bottom:.35rem; transition:all .2s ease; cursor:pointer; }}
+.sb-nav-item:hover {{ background:rgba(255,255,255,0.06); color:white; }}
+.sb-nav-item.active {{ background:#1E3A4D; color:white; border:1px solid rgba(255,255,255,0.08); box-shadow:0 4px 12px rgba(0,0,0,0.15); }}
+.sb-active-indicator {{ width:4px; height:16px; background:#00ACC1; border-radius:4px; }}
+
+.sb-card {{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:1rem; margin-top:2rem; margin-bottom:1.5rem; }}
+.sb-bottom-link {{ display:flex; align-items:center; gap:.75rem; padding:.55rem .75rem; border-radius:8px; font-size:.85rem; font-weight:500; color:#A2B6C3; text-decoration:none; margin-bottom:.15rem; transition:all .2s ease; cursor:pointer; }}
+.sb-bottom-link:hover {{ background:rgba(255,255,255,0.05); color:white; }}
 
 h1,h2,h3 {{ color:{NAVY}; letter-spacing:-.025em; }}
 h1 {{ font-weight:800; }}
 .eyebrow {{ color:{TEAL}; font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.13em; margin-bottom:.25rem; }}
 .hero-title {{ color:{NAVY}; font-size:clamp(2rem,3vw,2.75rem); line-height:1.12; font-weight:800; letter-spacing:-.045em; margin:.15rem 0 .55rem; }}
 .subtle {{ color:{MUTED}; line-height:1.65; margin-top:0; }}
-.sidebar-caption {{ font-size:.78rem; color:#C9D8E1; line-height:1.5; }}
 .metric-card {{ background:{WHITE}; border:1px solid {BORDER}; border-radius:16px; padding:1.25rem 1.4rem; box-shadow:0 4px 18px rgba(20,43,61,.025); }}
 .metric-label {{ color:{MUTED}; font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }}
 .metric-value {{ color:{NAVY}; font-size:2.25rem; font-weight:800; margin:.3rem 0 .15rem; letter-spacing:-.04em; }}
@@ -406,52 +410,54 @@ def render_auth(client):
 
 
 def render_sidebar():
-    pages = ["Overview", "Prediction", "About"]
     current = st.session_state.get("page", "Overview")
-    if current not in pages and current not in ["Settings", "Account"]:
+    if current not in ["Overview", "Prediction", "About", "Settings", "Account"]:
         current = "Overview"
-    
-    with st.sidebar:
-        logo = ROOT / "archiloadai.png"
-        if logo.exists():
-            st.image(str(logo), width=125)
-        else:
-            st.markdown('<div style="display:flex; align-items:center; gap:.5rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em;"><span style="background:#00838F; width:24px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏗️</span> ArchiLoad AI</div>', unsafe_allow_html=True)
-        
-        st.write("")
-        st.markdown('<div class="sidebar-caption" style="letter-spacing:.12em;font-weight:800;margin-top:.75rem;margin-bottom:.25rem">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
-        
-        selected = st.radio("Workspace navigation", pages, index=pages.index(current) if current in pages else 0, label_visibility="collapsed", key="sidebar_page")
-        if selected != current and selected in pages:
-            st.session_state.page = selected
-            st.rerun()
 
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        
-        # Sidebar informational card matching your reference design
-        st.markdown(f"""
-        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.1rem; margin-bottom:1.5rem;">
+    with st.sidebar:
+        # Logo and Title
+        st.markdown("""
+        <div class="sb-logo">
+            <span style="font-size: 1.4rem;">🏗️</span> ArchiLoad AI
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div class="sb-kicker">PERSONAL WORKSPACE</div>', unsafe_allow_html=True)
+
+        # Navigation links using query parameter buttons or state management
+        def nav_button(page_name, icon, label):
+            is_active = (current == page_name)
+            active_class = " active" if is_active else ""
+            indicator = '<div class="sb-active-indicator"></div>' if is_active else ''
+            
+            if st.button(f"{icon}  {label}", key=f"nav_{page_name}", use_container_width=True, type="secondary" if not is_active else "primary"):
+                st.session_state.page = page_name
+                st.rerun()
+
+        nav_button("Overview", "📊", "Overview")
+        nav_button("Prediction", "🎛️", "Prediction")
+        nav_button("About", "📖", "About")
+
+        # Sidebar middle card
+        st.markdown("""
+        <div class="sb-card">
             <div style="font-size:1.1rem; margin-bottom:.3rem;">🌱</div>
             <div style="font-weight:700; font-size:.85rem; color:white; margin-bottom:.3rem;">Better early-stage decisions</div>
             <div style="font-size:.75rem; color:#A2B6C3; line-height:1.5;">Explore building form, orientation, and glazing before detailed analysis.</div>
         </div>
         """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # 3-column layout for Settings, Account, and Sign out at the bottom of the sidebar
-        col_s1, col_s2, col_s3 = st.columns(3)
-        with col_s1:
-            if st.button("⚙️ Settings", use_container_width=True):
-                st.session_state.page = "Settings"
-                st.rerun()
-        with col_s2:
-            if st.button("👤 Account", use_container_width=True):
-                st.session_state.page = "Account"
-                st.rerun()
-        with col_s3:
-            if st.button("🚪 Sign out", use_container_width=True):
-                sign_out()
+
+        st.markdown('<hr style="border:0; border-top:1px solid #25465B; margin: 1.5rem 0 1rem 0;">', unsafe_allow_html=True)
+
+        # Bottom vertical links for Settings, Account, Sign out
+        if st.button("⚙️  Settings", key="sb_settings", use_container_width=True):
+            st.session_state.page = "Settings"
+            st.rerun()
+        if st.button("👤  Account", key="sb_account", use_container_width=True):
+            st.session_state.page = "Account"
+            st.rerun()
+        if st.button("🚪  Sign out", key="sb_signout", use_container_width=True):
+            sign_out()
 
 
 def render_overview():
