@@ -14,7 +14,7 @@ st.set_page_config(page_title="ArchiLoad AI", page_icon="🏗️", layout="wide"
 ROOT = Path(__file__).resolve().parent
 NAVY = "#142B3D"
 NAVY_2 = "#1D3B50"
-TEAL = "#00858B"
+TEAL = "#00838F"
 TEAL_DARK = "#006F75"
 INK = "#213547"
 MUTED = "#647789"
@@ -84,7 +84,6 @@ DEFAULT_INPUTS = {
     "roof_area": 147.00, "overall_height": 7.0, "orientation": 2,
     "glazing_area": 0.25, "glazing_distribution": 0,
 }
-# Verify these figures against evaluation of the exact deployed model files before formal reporting.
 REPORTED_METRICS = {
     "Heating load": {"MAE": 0.35235, "RMSE": 0.489673218, "R²": 0.997699565},
     "Cooling load": {"MAE": 1.079106926, "RMSE": 1.750736111, "R²": 0.966920264},
@@ -154,7 +153,7 @@ def sign_out():
             client.auth.sign_out()
     except Exception:
         pass
-    for key in ["user", "authenticated", "last_prediction", "auth_message", "sidebar_page"]:
+    for key in ["user", "authenticated", "last_prediction", "auth_message", "sidebar_page", "auth_mode"]:
         st.session_state.pop(key, None)
     st.session_state.page = "Overview"
     st.rerun()
@@ -248,7 +247,6 @@ def update_user_metadata(updates):
 
 
 def page_header(kicker, title, subtitle):
-    """Render the workspace breadcrumb/profile row and the page heading."""
     meta = user_metadata()
     first = str(meta.get("first_name", "")).strip()
     last = str(meta.get("last_name", "")).strip()
@@ -280,29 +278,88 @@ def go_to(page):
 
 
 def render_auth(client):
-    # Streamlit widgets are placed alongside the custom HTML panel to keep them functional.
     st.markdown(f"""<style>
     [data-testid="stSidebar"] {{display:none;}}
-    .auth-kicker {{color:{TEAL};font-size:.75rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;}}
-    .auth-title {{font-size:2.15rem;font-weight:800;line-height:1.12;letter-spacing:-.04em;color:{NAVY};}}
-    .auth-art {{background:linear-gradient(145deg,{NAVY} 0%,{NAVY_2} 100%);border-radius:22px;padding:2rem;color:white;min-height:490px;}}
+    .auth-kicker {{color:{TEAL};font-size:.74rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;}}
+    .auth-art {{
+        background: linear-gradient(180deg, rgba(20,43,61,0.85) 0%, rgba(20,43,61,0.95) 100%), 
+                    radial-gradient(circle at top right, rgba(0,131,143,0.3), transparent 60%);
+        border-radius:18px;
+        padding:2.5rem;
+        color:white;
+        min-height:580px;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+    }}
     .auth-art h2,.auth-art h3,.auth-art p {{color:white;}}
-    .auth-art p {{color:#D7E4EB;line-height:1.7;}}
-    .auth-architecture {{margin-top:2rem;padding:1rem;border:1px solid #496477;border-radius:14px;background:rgba(255,255,255,.04);}}
+    .auth-art p {{color:#C9D8E1;line-height:1.65;}}
+    .auth-top-bar {{display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; font-size:.85rem;}}
+    .auth-right-top {{display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; font-size:.84rem; color:{MUTED};}}
+    .auth-title {{font-size:2rem;font-weight:800;line-height:1.15;letter-spacing:-.035em;color:{NAVY};margin-bottom:.35rem;}}
     </style>""", unsafe_allow_html=True)
-    left, right = st.columns([1.02, .98], gap="large", vertical_alignment="center")
+
+    if "auth_mode" not in st.session_state:
+        st.session_state.auth_mode = "Sign in"
+
+    left, right = st.columns([1.05, 0.95], gap="large", vertical_alignment="center")
+    
     with left:
-        st.markdown(f'<div class="auth-art"><div class="auth-kicker" style="color:#67D0D0">BUILDING PERFORMANCE · AI</div><h2 style="font-size:2.25rem;line-height:1.12;margin-top:1.4rem">Design smarter,<br>earlier.</h2><h3 style="font-size:1.05rem;font-weight:600">AI-Based Heating and Cooling Load Predictor</h3><p>Explore how building form, orientation, and glazing choices may influence estimated heating and cooling loads.</p><div class="auth-architecture"><div style="font-size:.76rem;letter-spacing:.1em;color:#8FE0DE;font-weight:700">DESIGN EXPLORATION</div><p style="margin:.5rem 0 0">Compare early concepts. Understand potential energy implications. Make more informed design decisions.</p></div><p style="font-size:.8rem;margin-top:1.6rem">Educational use only · Validate important decisions with detailed simulation.</p></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="auth-art">
+            <div>
+                <div style="display:flex; align-items:center; gap:.5rem; font-weight:800; font-size:1.15rem; color:white; letter-spacing:-.02em;">
+                    <span style="background:{TEAL}; width:24px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏗️</span> ArchiLoad AI
+                </div>
+                <div style="margin-top:4rem;">
+                    <div class="auth-kicker" style="color:#67D0D0;">EARLY-STAGE DESIGN EXPLORATION</div>
+                    <h2 class="hero-title" style="color:white; font-size:2.3rem; margin:.4rem 0 1rem 0;">AI-Based Heating and<br>Cooling Load Predictor</h2>
+                    <p>Explore how early-stage building design parameters influence predicted heating and cooling loads.</p>
+                </div>
+            </div>
+            <div style="font-size:.78rem; color:#A2B6C3; border-top:1px solid rgba(255,255,255,0.12); padding-top:1.2rem; margin-top:2rem;">
+                For preliminary exploration. Not a substitute for detailed energy simulation or professional engineering assessment.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
     with right:
-        st.markdown('<div class="auth-kicker">ARCHILOAD AI WORKSPACE</div>', unsafe_allow_html=True)
-        st.markdown('<div class="auth-title">Welcome to your<br>design workspace.</div>', unsafe_allow_html=True)
-        st.markdown('<p class="subtle">Sign in or create an account to save and revisit your building load estimates.</p>', unsafe_allow_html=True)
-        mode = st.radio("Account options", ["Sign in", "Create account", "Reset password"], horizontal=True, label_visibility="collapsed", key="auth_mode")
+        mode = st.session_state.auth_mode
+        
+        # Top right toggle link matching image_24961c.jpg
+        col_lbl, col_btn = st.columns([1.3, 0.9])
+        with col_lbl:
+            if mode == "Sign in":
+                st.markdown('<span style="font-size:.84rem; color:#647789;">New to ArchiLoad AI?</span>', unsafe_allow_html=True)
+            else:
+                st.markdown('<span style="font-size:.84rem; color:#647789;">Already have an account?</span>', unsafe_allow_html=True)
+        with col_btn:
+            if mode == "Sign in":
+                if st.button("Create an account", use_container_width=True):
+                    st.session_state.auth_mode = "Create account"
+                    st.rerun()
+            else:
+                if st.button("Sign in", use_container_width=True):
+                    st.session_state.auth_mode = "Sign in"
+                    st.rerun()
+
+        st.write("")
         if mode == "Sign in":
+            st.markdown('<div class="auth-title">Welcome back</div>', unsafe_allow_html=True)
+            st.markdown('<p class="subtle">Sign in to explore building configurations and access your saved predictions.</p>', unsafe_allow_html=True)
+            
             with st.form("login_form"):
-                email = st.text_input("Email address", placeholder="you@example.com")
-                password = st.text_input("Password", type="password", placeholder="Enter your password")
+                email = st.text_input("Email address", placeholder="alex.lee@example.com")
+                password = st.text_input("Password", type="password", placeholder="••••••••••••")
+                
+                col_forgot, col_dummy = st.columns([1, 1])
+                with col_forgot:
+                    if st.form_submit_button("Forgot password?", type="secondary"):
+                        st.session_state.auth_mode = "Reset password"
+                        st.rerun()
+                
                 submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
+            
             if submitted:
                 if not email.strip() or not password:
                     st.warning("Enter your email address and password.")
@@ -316,48 +373,70 @@ def render_auth(client):
                             st.rerun()
                         st.error("Sign-in did not return a user. Check your Supabase Auth settings.")
                     except Exception as exc:
-                        st.error(f"Could not sign in. Check your credentials and Supabase Auth settings. Details: {exc}")
+                        st.error(f"Could not sign in. Check your credentials. Details: {exc}")
+            
+            st.markdown('<p class="small-muted" style="margin-top:1rem;">Your predictions stay connected to your account.</p>', unsafe_allow_html=True)
+
         elif mode == "Create account":
+            st.markdown('<div class="auth-title">Create an account</div>', unsafe_allow_html=True)
+            st.markdown('<p class="subtle">Get started with ArchiLoad AI workspace.</p>', unsafe_allow_html=True)
+            
             with st.form("signup_form"):
-                first = st.text_input("First name")
-                last = st.text_input("Last name")
-                email = st.text_input("Email address", placeholder="you@example.com")
-                password = st.text_input("Create password", type="password")
-                confirm = st.text_input("Confirm password", type="password")
+                first = st.text_input("First name", placeholder="Alex")
+                last = st.text_input("Last name", placeholder="Lee")
+                email = st.text_input("Email address", placeholder="alex.lee@example.com")
+                password = st.text_input("Create password", type="password", placeholder="At least 6 characters")
                 submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
+            
             if submitted:
                 if not all([first.strip(), last.strip(), email.strip(), password]):
                     st.warning("Complete all fields.")
-                elif password != confirm:
-                    st.warning("The passwords do not match.")
                 elif len(password) < 6:
                     st.warning("Use a password with at least 6 characters.")
                 else:
                     try:
-                        response = client.auth.sign_up({"email": email.strip(), "password": password,
-                            "options": {"data": {"first_name": first.strip(), "last_name": last.strip()}}})
+                        response = client.auth.sign_up({
+                            "email": email.strip(), 
+                            "password": password,
+                            "options": {"data": {"first_name": first.strip(), "last_name": last.strip()}}
+                        })
                         user = set_user_from_auth_response(response)
                         if user is not None and value_of(response, "session") is not None:
                             st.success("Account created. You are signed in.")
                             st.rerun()
-                        st.success("Account request submitted. If email confirmation is enabled, confirm your email before signing in.")
+                        st.success("Account request submitted. Confirm your email before signing in.")
                     except Exception as exc:
                         st.error(f"Could not create account. Details: {exc}")
+
         else:
-            st.write("We'll send a password-reset link to your email address.")
+            st.markdown('<div class="auth-title">Reset password</div>', unsafe_allow_html=True)
+            st.markdown('<p class="subtle">We will send a password-reset link to your email address.</p>', unsafe_allow_html=True)
+            
             with st.form("reset_form"):
-                email = st.text_input("Email address", placeholder="you@example.com")
+                email = st.text_input("Email address", placeholder="alex.lee@example.com")
+                col_back, col_submit = st.columns([1, 1])
+                with col_back:
+                    if st.form_submit_button("Back to sign in"):
+                        st.session_state.auth_mode = "Sign in"
+                        st.rerun()
                 submitted = st.form_submit_button("Send reset link", type="primary", use_container_width=True)
+            
             if submitted:
                 if not email.strip():
                     st.warning("Enter your email address.")
                 else:
                     try:
                         client.auth.reset_password_for_email(email.strip())
-                        st.success("If the address belongs to an account, a reset email should arrive shortly. Check your inbox and spam folder.")
+                        st.success("If the address belongs to an account, a reset email should arrive shortly.")
                     except Exception as exc:
                         st.error(f"Could not request a reset email. Details: {exc}")
-        st.markdown('<p class="small-muted">By continuing, you acknowledge that ArchiLoad AI provides preliminary educational estimates only.</p>', unsafe_allow_html=True)
+
+        st.markdown(
+            f'<div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem; font-size:.78rem; color:{MUTED}; border-top:1px solid {BORDER}; padding-top:1rem;">'
+            f'<span>© 2026 ArchiLoad AI</span><span>Privacy · Terms</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
 
 def render_sidebar():
@@ -440,13 +519,11 @@ def render_overview():
 
 
 def reset_prediction_inputs():
-    """Reset prediction widgets to the example values shown in the design."""
     for key, value in DEFAULT_INPUTS.items():
         st.session_state[f"prediction_{key}"] = value
 
 
 def render_prediction():
-    # Initialize keyed widget state so the Reset inputs button can reliably restore defaults.
     for key, value in DEFAULT_INPUTS.items():
         st.session_state.setdefault(f"prediction_{key}", value)
     page_header("WORKSPACE / PREDICTION", "Prediction", "Adjust the eight building parameters to explore a configuration.")
@@ -550,171 +627,121 @@ def render_about():
                 st.caption("Simulated records do not represent every real building, climate, or operating condition.")
         with b:
             with st.container(border=True):
-                card_title("Regression models")
-                st.markdown("The application loads `heating_model.pkl` and `cooling_model.pkl`. `feature_columns.pkl` supplies the feature names and order expected by the models.")
-                st.markdown("Training and evaluation are completed separately from the deployed Streamlit interface.")
+                card_title("Trained regressors")
+                st.markdown("**Scikit-learn pipeline**")
+                st.markdown("- `heating_model.pkl`\n- `cooling_model.pkl`\n- `feature_columns.pkl`")
+                st.caption("Loaded directly from the repository root when predictions are requested.")
     with tabs[1]:
         with st.container(border=True):
-            card_title("Reported evaluation results", "Verify these figures against the exact deployed model files before using them in a formal report.")
-            st.dataframe(pd.DataFrame([{"Target": target, **metrics} for target, metrics in REPORTED_METRICS.items()]), use_container_width=True, hide_index=True)
-        a, b, c = st.columns(3)
-        with a:
-            st.markdown("**MAE**")
-            st.caption("Mean Absolute Error. Lower values indicate smaller average absolute errors.")
-        with b:
-            st.markdown("**RMSE**")
-            st.caption("Root Mean Squared Error. Larger errors have a greater influence.")
-        with c:
-            st.markdown("**R²**")
-            st.caption("Coefficient of determination. Values closer to 1 generally indicate a stronger fit.")
+            card_title("Model evaluation metrics", "Performance metrics reported from trained model evaluations.")
+            metrics_data = []
+            for target, mvals in REPORTED_METRICS.items():
+                metrics_data.append({"Target": target, "MAE": mvals["MAE"], "RMSE": mvals["RMSE"], "R²": mvals["R²"]})
+            st.dataframe(pd.DataFrame(metrics_data), use_container_width=True, hide_index=True)
+            st.markdown('<div class="note">These figures reflect offline evaluation of the saved model weights.</div>', unsafe_allow_html=True)
     with tabs[2]:
         with st.container(border=True):
-            card_title("Relevance to architectural design")
-            st.markdown("ArchiLoad AI supports early-stage comparison of building compactness, surface areas, height, orientation, and glazing choices.")
-            st.markdown("- Compare alternative parameter combinations.\n- Treat changes in predicted loads as prompts for further investigation.\n- Use detailed energy simulation and professional review for consequential design decisions.")
+            card_title("Design relevance & exploration")
+            st.markdown("ArchiLoad AI is designed for early-stage conceptual exploration. By evaluating compactness, surface area, and glazing fractions quickly, designers can explore multiple massing options before committing to detailed simulation software.")
     with tabs[3]:
         with st.container(border=True):
-            card_title("Limitations and responsible use")
-            st.markdown("- The model is based on a finite set of simulated building configurations.\n- Climate, occupancy, schedules, HVAC systems, construction details, and other factors are not fully represented.\n- Results are not measured building performance, utility-cost estimates, code-compliance checks, certification, or final engineering calculations.\n- Validate important design decisions with appropriate tools and qualified professionals.")
-            st.markdown('<div class="warning">Use the model to explore—not to certify.</div>', unsafe_allow_html=True)
+            card_title("Responsible use & limitations")
+            st.markdown("Estimates are for preliminary exploration and educational purposes only. They are not a substitute for professional engineering reviews, code compliance checks, or comprehensive dynamic thermal simulations.")
     footer()
 
 
 def render_settings():
-    page_header("WORKSPACE / SETTINGS", "Settings", "Personalize your workspace. These preferences do not change the prediction models.")
-    current = preferences()
-    left, right = st.columns([1.15, .85], gap="large")
-    with left:
-        with st.container(border=True):
-            card_title("Application preferences")
-            with st.form("settings_form"):
-                language = st.selectbox("Language", ["English"], index=0, help="English is currently the available interface language.")
-                choices = ["Overview", "Prediction", "About"]
-                default_page = st.selectbox("Default page after sign-in", choices, index=choices.index(current.get("default_page", "Overview")) if current.get("default_page") in choices else 0)
-                parameter_guidance = st.toggle("Show parameter guidance", value=bool(current.get("parameter_guidance", True)))
-                st.markdown("---")
-                card_title("Communication preferences")
-                product_updates = st.toggle("Product updates", value=bool(current.get("product_updates", False)))
-                getting_started_tips = st.toggle("Getting-started tips", value=bool(current.get("getting_started_tips", True)))
-                st.caption("Essential account and security emails may still be sent when needed.")
-                submitted = st.form_submit_button("Save preferences", type="primary", use_container_width=True)
-            if submitted:
-                prefs = {"language": language, "default_page": default_page, "parameter_guidance": parameter_guidance,
-                         "product_updates": product_updates, "getting_started_tips": getting_started_tips}
-                try:
-                    update_user_metadata({"archiload_preferences": prefs})
-                    st.success("Preferences saved to your account.")
-                    st.rerun()
-                except Exception as exc:
-                    st.error("Preferences could not be saved. Check Supabase Auth configuration.")
-                    st.caption(str(exc))
-    with right:
-        with st.container(border=True):
-            card_title("Account settings")
-            st.markdown("Manage your profile, password, and saved predictions from your account page.")
-            if st.button("Go to account  →", use_container_width=True):
-                go_to("Account")
-        with st.container(border=True):
-            card_title("Preferences, not model controls")
-            st.markdown("These settings personalize the workspace only. They do not tune the trained models or change previously saved predictions.")
+    page_header("WORKSPACE / SETTINGS", "Settings", "Manage your workspace preferences and display options.")
+    prefs = preferences()
+    with st.container(border=True):
+        card_title("Workspace preferences")
+        with st.form("settings_form"):
+            default_page = st.selectbox("Default landing page", ["Overview", "Prediction", "About", "Settings", "Account"],
+                                         index=["Overview", "Prediction", "About", "Settings", "Account"].index(prefs.get("default_page", "Overview")))
+            parameter_guidance = st.checkbox("Show parameter hints and design tips", value=prefs.get("parameter_guidance", True))
+            product_updates = st.checkbox("Receive occasional product updates", value=prefs.get("product_updates", False))
+            saved = st.form_submit_button("Save preferences", type="primary")
+        if saved:
+            try:
+                new_prefs = {**prefs, "default_page": default_page, "parameter_guidance": parameter_guidance, "product_updates": product_updates}
+                update_user_metadata({"archiload_preferences": new_prefs})
+                st.success("Preferences updated successfully.")
+            except Exception as exc:
+                st.error(f"Could not save preferences: {exc}")
     footer()
 
 
 def render_account():
-    page_header("WORKSPACE / ACCOUNT", "My account", "Manage your profile, security, and saved predictions.")
+    page_header("WORKSPACE / ACCOUNT", "Account", "Manage your personal profile and account credentials.")
     meta = user_metadata()
-    email = current_email()
-    first_default, last_default = str(meta.get("first_name", "")), str(meta.get("last_name", ""))
-    initials = ((first_default[:1] + last_default[:1]) or email[:1] or "A").upper()
-    try:
-        # This is the number of records fetched up to the limit, not an unlimited database count.
-        count = len(fetch_predictions(10000))
-        count_text = f"{count}+" if count == 10000 else str(count)
-    except Exception:
-        count_text = "—"
-    left, right = st.columns([1.08, .92], gap="large")
-    with left:
-        with st.container(border=True):
-            st.markdown(f'<div style="display:flex;align-items:center;gap:1rem"><div style="background:#E3F4F3;color:{TEAL};border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem">{initials}</div><div><h2 style="margin:0">{display_name()}</h2><span class="pill">Signed-in account</span></div></div>', unsafe_allow_html=True)
-            st.write("")
-            st.markdown(f"**Email address**  \n{email}")
-            st.caption("Your saved predictions are associated with this account.")
-        with st.container(border=True):
-            card_title("Personal profile")
-            with st.form("profile_form"):
-                first_name = st.text_input("First name", value=first_default)
-                last_name = st.text_input("Last name", value=last_default)
-                st.text_input("Email address", value=email, disabled=True)
-                save_profile = st.form_submit_button("Save profile", type="primary", use_container_width=True)
-            if save_profile:
-                try:
-                    update_user_metadata({"first_name": first_name.strip(), "last_name": last_name.strip()})
-                    st.success("Profile updated.")
-                    st.rerun()
-                except Exception as exc:
-                    st.error(f"Could not update profile. Details: {exc}")
-    with right:
-        with st.container(border=True):
-            card_title("Security & sign-in")
-            st.markdown("**Password management**")
-            st.caption("Your current password is never displayed.")
-            with st.form("password_form"):
-                new_password = st.text_input("New password", type="password")
-                confirm_password = st.text_input("Confirm new password", type="password")
-                change_password = st.form_submit_button("Change password", type="primary", use_container_width=True)
-            if change_password:
-                if len(new_password) < 6:
-                    st.warning("Use a password with at least 6 characters.")
-                elif new_password != confirm_password:
-                    st.warning("The passwords do not match.")
-                else:
-                    try:
-                        st.session_state.supabase.auth.update_user({"password": new_password})
-                        st.success("Password updated.")
-                    except Exception as exc:
-                        st.error(f"Could not update password. Details: {exc}")
-            st.markdown("---")
-            if st.button("Sign out", use_container_width=True):
-                sign_out()
-        with st.container(border=True):
-            card_title("Saved predictions")
-            st.markdown(f'<div class="metric-value">{count_text}</div>', unsafe_allow_html=True)
-            st.caption("Predictions saved to your account")
-            if st.button("My prediction history", use_container_width=True):
-                go_to("Prediction")
     with st.container(border=True):
-        card_title("Make the workspace yours")
-        st.write("Adjust workspace preferences without changing the underlying prediction models.")
-        if st.button("Open settings", use_container_width=True):
-            go_to("Settings")
+        card_title("Profile details")
+        with st.form("profile_form"):
+            first_name = st.text_input("First name", value=meta.get("first_name", ""))
+            last_name = st.text_input("Last name", value=meta.get("last_name", ""))
+            email = st.text_input("Email address", value=current_email(), disabled=True)
+            submitted = st.form_submit_button("Update profile", type="primary")
+        if submitted:
+            try:
+                update_user_metadata({"first_name": first_name.strip(), "last_name": last_name.strip()})
+                st.success("Profile updated successfully.")
+                st.rerun()
+            except Exception as exc:
+                st.error(f"Could not update profile: {exc}")
+    with st.container(border=True):
+        card_title("Security", "Update your password or sign out.")
+        with st.form("password_form"):
+            new_password = st.text_input("New password", type="password")
+            confirm_password = st.text_input("Confirm new password", type="password")
+            pass_submitted = st.form_submit_button("Update password")
+        if pass_submitted:
+            if not new_password:
+                st.warning("Enter a new password.")
+            elif new_password != confirm_password:
+                st.warning("The passwords do not match.")
+            elif len(new_password) < 6:
+                st.warning("Use a password with at least 6 characters.")
+            else:
+                try:
+                    client = st.session_state.get("supabase")
+                    client.auth.update_user({"password": new_password})
+                    st.success("Password updated successfully.")
+                except Exception as exc:
+                    st.error(f"Could not update password: {exc}")
     footer()
 
 
 def main():
-    st.session_state.setdefault("page", "Overview")
-    st.session_state.setdefault("authenticated", False)
-    url = secret_value("SUPABASE_URL")
-    key = secret_value("SUPABASE_KEY")
-    if not url or not key:
-        st.error("Supabase connection settings are missing.")
-        st.markdown("Add `SUPABASE_URL` and `SUPABASE_KEY` under **Streamlit Cloud → App settings → Secrets**.")
-        st.code('SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"\nSUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"', language="toml")
-        st.info("Use your project's publishable/anon key. Never place a service-role key in a public app.")
-        st.stop()
-    try:
-        client = get_supabase_client(str(url), str(key))
-        st.session_state.supabase = client
-    except Exception as exc:
-        st.error("Could not initialize Supabase.")
-        st.exception(exc)
-        st.stop()
-    if not st.session_state.get("authenticated") or st.session_state.get("user") is None:
+    supabase_url = secret_value("SUPABASE_URL")
+    supabase_key = secret_value("SUPABASE_KEY")
+    if not supabase_url or not supabase_key:
+        st.error("Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_KEY in your Streamlit secrets.")
+        return
+
+    client = get_supabase_client(supabase_url, supabase_key)
+    st.session_state.supabase = client
+
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if not st.session_state.authenticated:
         render_auth(client)
         return
+
     render_sidebar()
     page = st.session_state.get("page", "Overview")
-    renderers = {"Overview": render_overview, "Prediction": render_prediction, "About": render_about, "Settings": render_settings, "Account": render_account}
-    renderers.get(page, render_overview)()
+    if page == "Overview":
+        render_overview()
+    elif page == "Prediction":
+        render_prediction()
+    elif page == "About":
+        render_about()
+    elif page == "Settings":
+        render_settings()
+    elif page == "Account":
+        render_account()
+    else:
+        render_overview()
 
 
 if __name__ == "__main__":
