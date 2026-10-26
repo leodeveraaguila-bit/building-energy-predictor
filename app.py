@@ -467,6 +467,50 @@ def render_sidebar():
     if current not in ["Overview", "Prediction", "About", "Settings", "Account"]:
         current = "Overview"
 
+    # Inject CSS targeting Streamlit's internal button flex container
+    st.markdown("""
+    <style>
+    /* Force Streamlit button contents to align to the left */
+    [data-testid="stSidebar"] .stButton > button {
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        text-align: left !important;
+        padding: 0.65rem 0.85rem !important;
+        width: 100% !important;
+        border: none !important;
+        background: transparent !important;
+        color: #B0C4D3 !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        margin-bottom: 0.2rem !important;
+    }
+
+    /* Target the internal container of Streamlit button text/icon */
+    [data-testid="stSidebar"] .stButton > button > div {
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    /* Active state for selected page button */
+    [data-testid="stSidebar"] .stButton > button:focus,
+    [data-testid="stSidebar"] .stButton > button:active {
+        background: #1C3649 !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #FFFFFF !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     with st.sidebar:
         st.markdown("""
         <div class="sb-brand">
