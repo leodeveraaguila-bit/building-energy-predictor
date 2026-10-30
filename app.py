@@ -272,6 +272,201 @@ def predict_loads(values):
     return heating, cooling
 
 
+# Target ranges reported for the UCI Energy Efficiency dataset.
+# Three equal-width bands provide a simple, transparent Low/Moderate/High label.
+# These are dataset-relative categories, not building-code or performance ratings.
+LOAD_RANGES = {
+    "Heating": (6.01, 43.10),
+    "Cooling": (10.90, 48.03),
+}
+
+
+def classify_load(load, target):
+    """Classify a predicted load using thirds of the target's dataset range."""
+    minimum, maximum = LOAD_RANGES[target]
+    third = (maximum - minimum) / 3.0
+    if load <= minimum + third:
+        return "Low", "🟢"
+    if load <= minimum + 2.0 * third:
+        return "Moderate", "🟠"
+    return "High", "🔴"
+
+
+def load_interpretation(load, target):
+    """Return a concise architectural interpretation for one predicted load."""
+    label, _ = classify_load(load, target)
+    if label == "Low":
+        meaning = "falls in the lower third of the dataset's target range"
+        insight = "This configuration has a relatively lower modeled demand for this load."
+    elif label == "Moderate":
+        meaning = "falls in the middle third of the dataset's target range"
+        insight = "This configuration has a mid-range modeled demand; compare alternatives to explore possible improvements."
+    else:
+        meaning = "falls in the upper third of the dataset's target range"
+        insight = "This configuration has a relatively higher modeled demand; compare alternatives to explore possible reductions."
+    return f"{target} load is **{label.lower()}** relative to the dataset: it {meaning}. {insight}"
+
+
+def render_load_interpretation(heating, cooling):
+    """Display the two classifications and a short architecture-focused summary."""
+    h_label, h_icon = classify_load(heating, "Heating")
+    c_label, c_icon = classify_load(cooling, "Cooling")
+
+    st.markdown("#### Architectural interpretation")
+    left, right = st.columns(2)
+    with left:
+        st.markdown(f"**Heating demand: {h_icon} {h_label}**")
+        st.caption(f"Dataset range: {LOAD_RANGES['Heating'][0]:.2f}–{LOAD_RANGES['Heating'][1]:.2f}")
+        st.markdown(load_interpretation(heating, "Heating"))
+    with right:
+        st.markdown(f"**Cooling demand: {c_icon} {c_label}**")
+        st.caption(f"Dataset range: {LOAD_RANGES['Cooling'][0]:.2f}–{LOAD_RANGES['Cooling'][1]:.2f}")
+        st.markdown(load_interpretation(cooling, "Cooling"))
+    st.caption(
+        "Low/Moderate/High are simple equal-width categories based on the UCI dataset's "
+        "target ranges. They are not code-compliance ratings or predictions of actual energy bills."
+    )
+
+
+def render_design_alternative():
+    """Let the user compare a second configuration with the last saved prediction."""
+    baseline = st.session_state.get("last_prediction")
+    if not baseline:
+        return
+
+    st.markdown("### Explore a design alternative")
+    st.markdown(
+        '<p class="subtle">Change one or more parameters and compare the model estimates. '
+        'This comparison is not saved to prediction history.</p>',
+        unsafe_allow_html=True,
+    )
+
+    current = baseline["values"]
+    with st.expander("Set alternative building parameters", expanded=False):
+        with st.form("alternative_prediction_form"):
+            x, y = st.columns(2, gap="medium")
+            with x:
+                alt_compactness = st.number_input(
+                    "Alternative relative compactness", 0.60, 1.00,
+                    value=float(current["relative_compactness"]), step=0.01,
+                    format="%.2f", key="alt_relative_compactness"
+                )
+                alt_surface = st.number_input(
+                    "Alternative surface area (m²)", 500.0, 820.0,
+                    value=float(current["surface_area"]), step=1.5,
+                    format="%.2f", key="alt_surface_area"
+                )
+                alt_wall = st.number_input(
+                    "Alternative wall area (m²)", 240.0, 420.0,
+                    value=float(current["wall_area"]), step=1.0,
+                    format="%.2f", key="alt_wall_area"
+                )
+                alt_roof = st.number_input(
+                    "Alternative roof area (m²)", 100.0, 225.0,
+                    value=float(current["roof_area"]), step=1.0,
+                    format="%.2f", key="alt_roof_area"
+                )
+            with y:
+                alt_height = st.selectbox(
+                    "Alternative overall height (m)", [3.5, 7.0],
+                    index=[3.5, 7.0].index(float(current["overall_height"])),
+                    key="alt_overall_height"
+                )
+                alt_orientation = st.selectbox(
+                    "Alternative orientation", [2, 3, 4, 5],
+                    index=[2, 3, 4, 5].index(int(current["orientation"])),
+                    key="alt_orientation"
+                )
+                alt_glazing = st.selectbox(
+                    "Alternative glazing area", [0.00, 0.10, 0.25, 0.40],
+                    index=[0.00, 0.10, 0.25, 0.40].index(float(current["glazing_area"])),
+                    format_func=lambda v: f"{v:.2f}",
+                    key="alt_glazing_area"
+                )
+                alt_distribution = st.selectbox(
+                    "Alternative glazing distribution", [0, 1, 2, 3, 4, 5],
+                    index=[0, 1, 2, 3, 4, 5].index(int(current["glazing_distribution"])),
+                    key="alt_glazing_distribution"
+                )
+            compare = st.form_submit_button("Compare designs", type="primary", use_container_width=True)
+
+    if compare:
+        alternative_values = {
+            "relative_compactness": alt_compactness,
+            "surface_area": alt_surface,
+            "wall_area": alt_wall,
+            "roof_area": alt_roof,
+            "overall_height": alt_height,
+            "orientation": alt_orientation,
+            "glazing_area": alt_glazing,
+            "glazing_distribution": alt_distribution,
+        }
+        try:
+            with st.spinner("Comparing the two configurations…"):
+                alt_heating, alt_cooling = predict_loads(alternative_values)
+            st.session_state.design_comparison = {
+                "baseline_values": current.copy(),
+                "baseline_heating": float(baseline["heating"]),
+                "baseline_cooling": float(baseline["cooling"]),
+                "alternative_values": alternative_values,
+                "alternative_heating": alt_heating,
+                "alternative_cooling": alt_cooling,
+            }
+        except Exception as exc:
+            st.error("The alternative design could not be evaluated.")
+            st.exception(exc)
+
+    comparison = st.session_state.get("design_comparison")
+    if comparison and comparison.get("baseline_values") == current:
+        st.markdown("#### Design comparison")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Heating load**")
+            st.metric(
+                "Alternative estimate",
+                f"{comparison['alternative_heating']:.2f}",
+                delta=f"{comparison['alternative_heating'] - comparison['baseline_heating']:+.2f} vs. current",
+                delta_color="inverse",
+            )
+            st.caption(f"Current: {comparison['baseline_heating']:.2f}")
+        with c2:
+            st.markdown("**Cooling load**")
+            st.metric(
+                "Alternative estimate",
+                f"{comparison['alternative_cooling']:.2f}",
+                delta=f"{comparison['alternative_cooling'] - comparison['baseline_cooling']:+.2f} vs. current",
+                delta_color="inverse",
+            )
+            st.caption(f"Current: {comparison['baseline_cooling']:.2f}")
+
+        def change_sentence(target, old, new):
+            difference = new - old
+            if abs(difference) < 0.005:
+                return f"The alternative has almost no predicted change in {target.lower()} load."
+            if old != 0:
+                percent = abs(difference / old) * 100.0
+                direction = "higher" if difference > 0 else "lower"
+                return f"The alternative has a {percent:.1f}% {direction} predicted {target.lower()} load."
+            direction = "higher" if difference > 0 else "lower"
+            return f"The alternative has a {direction} predicted {target.lower()} load (percentage change unavailable because the current estimate is zero)."
+
+        st.markdown("**Architectural interpretation**")
+        st.write(change_sentence("Heating", comparison["baseline_heating"], comparison["alternative_heating"]))
+        st.write(change_sentence("Cooling", comparison["baseline_cooling"], comparison["alternative_cooling"]))
+        h_label, _ = classify_load(comparison["alternative_heating"], "Heating")
+        c_label, _ = classify_load(comparison["alternative_cooling"], "Cooling")
+        st.info(
+            f"The alternative falls in the **{h_label.lower()} heating-demand** band and "
+            f"the **{c_label.lower()} cooling-demand** band relative to the dataset. "
+            "Consider these results alongside daylight, comfort, construction, climate, and other design requirements."
+        )
+        st.caption(
+            "A lower predicted load is not, by itself, proof of lower total building energy use or better overall design performance."
+        )
+
+
+
+
 def save_prediction(values, heating, cooling):
     user_id = get_user_id()
     if not user_id:
@@ -811,8 +1006,13 @@ def render_prediction():
                 r2.metric("Cooling load", f"{result['cooling']:.2f}")
                 st.caption(f"Generated: {result.get('created_at', 'recently')}")
                 st.markdown('<div class="warning" style="margin-top:1rem;">Model estimates are for relative comparison. They do not represent every site, weather, or HVAC condition.</div>', unsafe_allow_html=True)
+                render_load_interpretation(result["heating"], result["cooling"])
             else:
                 st.markdown(f'<div style="text-align:center;padding:1.5rem .5rem"><div class="section-label">Awaiting prediction</div><h3 style="margin-top:1rem">Your estimates will appear here</h3><p class="subtle">Review the building parameters, then run a prediction to estimate heating and cooling loads.</p></div>', unsafe_allow_html=True)
+
+    if st.session_state.get("last_prediction"):
+        with st.container(border=True):
+            render_design_alternative()
 
     with st.container(border=True):
         st.markdown('<h3 style="margin-top:0;">My prediction history</h3>', unsafe_allow_html=True)
